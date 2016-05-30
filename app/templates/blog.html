@@ -1,17 +1,10 @@
-<!DOCTYPE html>
+{% extends "main.html" %}
+{% block content %}
 
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-</head>
-<body>
-
-<div class="container">
-  {% if blogs %}
+  <div class="jumbotron">
     <h2 align="center">Blogs</h2>
+    </div>
+  {% if blogs %}
   <a href="/newpost"><button type="submit">Add new post</button></a>
   <br>
   <br>
@@ -27,6 +20,4 @@
     <h2>No blogs to display</h2>
     <a href="/newpost"><button type="submit">Add new post</button></a>
   {% endif %}
-</div>
-</body>
-</html>
+{% endblock %}
