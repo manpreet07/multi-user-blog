@@ -10,8 +10,6 @@
 <body>
 
 <div class="container">
-
-
   {% if blogs %}
     <h2 align="center">Blogs</h2>
   <a href="/newpost"><button type="submit">Add new post</button></a>
@@ -19,7 +17,9 @@
   <br>
     {% for blog in blogs %}
     <div class="panel panel-default">
-      <div class="panel-heading"><b>{{blog.title}}</b><div class="text-right">{{blog.date}}</div></div>
+      <div class="panel-heading"><b>{{blog.title}}</b>
+        <div class="text-right">{{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</div>
+      </div>
       <div class="panel-body">{{blog.blog}}</div>
     </div>
     {% endfor %}
