@@ -1,16 +1,9 @@
-<!DOCTYPE html>
+{% extends "main.html" %}
+{% block content %}
 
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-</head>
-<body>
-
-<div class="container">
-  <h2>Create new post</h2>
+  <div class="jumbotron">
+    <h2 align="center">Create new post</h2>
+    </div>
 	<form method="post" role="form">
 
     <div class="form-group">
@@ -28,5 +21,4 @@
   <br>
     <a href="/"><button type="submit">See all posts</button></a>
 </div>
-</body>
-</html>
+{% endblock %}
