@@ -43,7 +43,7 @@ class AddNewPostPage(Handler):
       newPost = Blog(title = _title, blog = _blog)
       _newPost_key = newPost.put()
       _newPostID = _newPost_key.id()
-      self.redirect('/newpost/%s' % str(_newPostID))
+      self.redirect('/blog/%s' % str(_newPostID))
 
     if _title == "" and _blog == "":
       self.render('newpost.html', title_error=_title_error, post_error=_post_error)
@@ -66,4 +66,4 @@ class PostPage(Handler):
     self.render("permalink.html", post=post)
 
 app = webapp2.WSGIApplication(
-  [('/', BlogsPage), ('/newpost', AddNewPostPage), ('/newpost/([0-9]+)', PostPage)], debug=True)
+  [('/', BlogsPage), ('/newpost', AddNewPostPage), ('/blog/([0-9]+)', PostPage)], debug=True)
