@@ -1,9 +1,7 @@
 {% extends "main.html" %}
 {% block content %}
 
-  <div class="jumbotron">
     <h2 align="center">New Post</h2>
-    </div>
 
     <div class="panel panel-default">
       <div class="panel-heading"><b>{{post.title}}</b>
@@ -11,6 +9,6 @@
       <div class="panel-body">{{post.blog}}</div>
     </div>
     <br>
-    <a href="/"><button type="submit">See all posts</button></a>
+    <a href="/"><button type="submit" class="btn btn-primary">See all posts</button></a>
 </div>
 {% endblock %}

@@ -1,0 +1,21 @@
+body { background-color:#3C3C3C; color:whitesmoke;}
+
+
+.navbar {
+    background-color:#007BD5;
+    height: 180px;
+}
+
+
+.panel-body {
+    color:black;
+}
+
+
+.container {
+    margin-top: 200px;
+}
+
+.btn-danger {
+    margin: 15px;
+}

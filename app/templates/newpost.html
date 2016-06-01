@@ -1,9 +1,7 @@
 {% extends "main.html" %}
 {% block content %}
 
-  <div class="jumbotron">
     <h2 align="center">Create new post</h2>
-    </div>
 	<form method="post" role="form">
 
     <div class="form-group">
@@ -13,12 +11,11 @@
     </div>
     <div class="form-group">
       <label for="blog">Blog:</label>
-      <textarea rows="20" type="text" class="form-control" id="blog" placeholder="Enter post..." name="blog"></textarea>
+      <textarea rows="13" type="text" class="form-control" id="blog" placeholder="Enter post..." name="blog"></textarea>
       <label style="color:red;">{{post_error}}</label>
     </div>
-    <button class="btn btn-default" type="submit">Submit</button>
+    <button class="btn btn-primary" type="submit">Submit</button>
+    <a onclick="window.location='/'; return false;"><button type="cancel" class="btn btn-danger">Cancel</button></a>
 	</form>
-  <br>
-    <a href="/"><button type="submit">See all posts</button></a>
 </div>
 {% endblock %}
