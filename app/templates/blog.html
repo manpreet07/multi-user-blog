@@ -1,15 +1,14 @@
 {% extends "main.html" %}
 {% block content %}
 
-  <div class="jumbotron">
-    <h2 align="center">Blogs</h2>
-    </div>
+
   {% if blogs %}
-  <a href="/newpost"><button type="submit">Add new post</button></a>
+  <div id="scroll">
+  <a href="/newpost"><button type="submit" class="btn btn-primary">Add new post</button></a>
   <br>
   <br>
     {% for blog in blogs %}
-    <div class="panel panel-default">
+    <div class="panel panel-default" id="section1">
       <div class="panel-heading"><b>{{blog.title}}</b>
         <div class="text-right">{{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</div>
       </div>
@@ -18,6 +17,8 @@
     {% endfor %}
   {% else %}
     <h2>No blogs to display</h2>
-    <a href="/newpost"><button type="submit">Add new post</button></a>
+    <a href="/newpost"><button type="submit" class="btn btn-primary">Add new post</button></a>
   {% endif %}
+
+</div>
 {% endblock %}
