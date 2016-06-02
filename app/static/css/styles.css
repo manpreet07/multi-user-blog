@@ -32,3 +32,7 @@ body { background-color:#e8e9e3; color:whitesmoke;}
     margin-top: 20px;
     border-radius: 10px;
     }
+
+p {
+white-space: pre-line;;
+}
