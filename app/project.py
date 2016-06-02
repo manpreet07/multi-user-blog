@@ -63,7 +63,7 @@ class PostPage(Handler):
       self.error(404)
       return
 
-    self.render("permalink.html", post=post)
+    self.render("permalink.html", blog=post)
 
 app = webapp2.WSGIApplication(
   [('/', BlogsPage), ('/newpost', AddNewPostPage), ('/blog/([0-9]+)', PostPage)], debug=True)

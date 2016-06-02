@@ -7,18 +7,28 @@
   <a href="/newpost"><button type="submit" class="btn btn-primary">Add new post</button></a>
   <br>
   <br>
+    <!--{% for blog in blogs %}-->
+    <!--<div class="panel panel-default" id="section1">-->
+      <!--<div class="panel-heading"><b>{{blog.title}}</b>-->
+        <!--<div class="text-right">{{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</div>-->
+      <!--</div>-->
+      <!--<div class="panel-body">{{blog.blog}}</div>-->
+    <!--</div>-->
+    <!--{% endfor %}-->
+
     {% for blog in blogs %}
-    <div class="panel panel-default" id="section1">
-      <div class="panel-heading"><b>{{blog.title}}</b>
-        <div class="text-right">{{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</div>
-      </div>
-      <div class="panel-body">{{blog.blog}}</div>
-    </div>
+        <div class="container-fluid">
+          <h2>{{blog.title}}</h2>
+          <hr>
+          <p>{{blog.blog}}</p>
+          <div class="text-right"><i>{{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</i></div>
+        </div>
     {% endfor %}
+
+
   {% else %}
     <h2>No blogs to display</h2>
     <a href="/newpost"><button type="submit" class="btn btn-primary">Add new post</button></a>
   {% endif %}
-
 </div>
 {% endblock %}
