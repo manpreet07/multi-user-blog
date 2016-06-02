@@ -1,12 +1,15 @@
-body { background-color:#3C3C3C; color:whitesmoke;}
+body { background-color:#e8e9e3; color:whitesmoke;}
 
 
-.navbar {
-    background-color:#007BD5;
+.navbar{
+    background-color:#006fab;
     height: 180px;
 }
 
-
+.navbar-inverse{
+    background-color:#006fab;
+    height: 180px;
+}
 .panel-body {
     color:black;
 }
@@ -19,3 +22,13 @@ body { background-color:#3C3C3C; color:whitesmoke;}
 .btn-danger {
     margin: 15px;
 }
+
+
+.container-fluid {
+    padding:20px;
+    height:auto;
+    color: black;
+    background-color: white;
+    margin-top: 20px;
+    border-radius: 10px;
+    }
