@@ -1,0 +1,38 @@
+
+
+body { background-color:#e8e9e3; color:whitesmoke;}
+
+
+.navbar{
+    background-color:#006fab;
+}
+
+.navbar-inverse{
+    background-color:#006fab;
+}
+.panel-body {
+    color:black;
+}
+
+
+.container {
+    margin-top: 200px;
+}
+
+.btn-danger {
+    margin: 15px;
+}
+
+
+.container-fluid {
+    padding:20px;
+    height:auto;
+    color: black;
+    background-color: white;
+    margin-top: 20px;
+    border-radius: 10px;
+    }
+
+p {
+    white-space: pre-line;;
+}
