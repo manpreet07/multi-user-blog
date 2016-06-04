@@ -16,6 +16,9 @@ handlers:
 - url: /blog/(.*)
   static_dir: project.app
 
+- url: /blog/signup
+  static_dir: project.app
+
 - url: /.*
   script: project.app
 

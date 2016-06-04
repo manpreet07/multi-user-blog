@@ -119,8 +119,8 @@ class SignUpPage(Handler):
 
   def post(self):
     _username = self.request.get("username")
-    _pwd = self.request.get("pwd")
-    _verify_pwd = self.request.get("verify_pwd")
+    _pwd = self.request.get("password")
+    _verify_pwd = self.request.get("verify_password")
     _email = self.request.get("email")
 
     username_error = "Please enter Username"
@@ -133,18 +133,12 @@ class SignUpPage(Handler):
         _hashpw = make_pw_hash(_username, _pwd)
         newUser = User(username = _username, password = _hashpw, email=_email)
         newUser.put()
-        self.redirect('/')
+        self.render('welcome.html', user=newUser.username)
       else:
         self.render('signup.html', verify_pw_error=verify_pw_error)
 
-    if _username == "":
-      self.render('signup.html', username_error=username_error)
-    if _pwd == "":
-      self.render('signup.html', pw_error=pw_error)
-    if _verify_pwd == "":
-      self.render('signup.html', verify_pw_error=verify_pw_error)
-    if _email == "":
-      self.render('signup.html', email_error=email_error)
+    if _username == "" or _pwd == "" or _verify_pwd == "" or _email == "":
+      self.render('signup.html', username_error=username_error,pw_error=pw_error,verify_pw_error=verify_pw_error,email_error=email_error)
 
 app = webapp2.WSGIApplication(
   [('/', BlogsPage),('/newpost', AddNewPostPage), ('/blog/signup', SignUpPage), ('/blog/([0-9]+)', PostPage)], debug=True)
