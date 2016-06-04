@@ -1,37 +1,36 @@
-body { background-color:#e8e9e3; color:whitesmoke;}
+/* Set height of the grid so .sidenav can be 100% (adjust if needed) */
+    .row.content {height: 1500px}
 
-
-.navbar{
-    background-color:#006fab;
-    height: 180px;
-}
-
-.navbar-inverse{
-    background-color:#006fab;
-    height: 180px;
-}
-.panel-body {
-    color:black;
-}
-
-
-.container {
-    margin-top: 200px;
-}
-
-.btn-danger {
-    margin: 15px;
-}
-
-
-.container-fluid {
-    padding:20px;
-    height:auto;
-    color: black;
-    background-color: white;
-    margin-top: 20px;
-    border-radius: 10px;
+    /* Set gray background color and 100% height */
+    .sidenav {
+      background-color: #f1f1f1;
+      height: 100%;
     }
+
+    /* Set black background color, white text and some padding */
+    footer {
+      background-color: #555;
+      color: white;
+      padding: 15px;
+    }
+
+    /* On small screens, set height to 'auto' for sidenav and grid */
+    @media screen and (max-width: 767px) {
+      .sidenav {
+        height: auto;
+        padding: 15px;
+      }
+      .row.content {height: auto;}
+    }
+
+body {
+background-color: #fafafa
+}
+
+.well {
+    background-color: #fff;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08),0 0px 0px 1px rgba(0, 0, 0, 0.02);
+}
 
 p {
     white-space: pre-line;;

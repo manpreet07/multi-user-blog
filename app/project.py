@@ -1,17 +1,22 @@
+import hmac
 import os
 
-import webapp2
 import jinja2
-from models import Blog
+import webapp2
 from google.appengine.ext import ndb
-import hmac
+import random
+import string
+import hashlib
+from models import Blog, User
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir), autoescape=True)
 
-SECRET = "dfadsfalfhuhldfagfifuilcbzvjkzhcvFeygfiuldlvggliuvkbalyf"
+def make_salt():
+  return ''.join(random.choice(string.letters) for x in xrange(5))
+
 def hash_str(s):
-  return hmac.new(SECRET, s).hexdigest()
+  return hmac.new(make_salt(), s).hexdigest()
 
 def make_secure_val(s):
   return "%s|%s" % (s, hash_str(s))
@@ -20,6 +25,20 @@ def check_secure_val(h):
   val = h.split('|')[0]
   if h == make_secure_val(val):
     return val
+
+def make_pw_hash(name, pw, salt=None):
+  if not salt:
+    salt = make_salt()
+  h = hashlib.sha256(name + pw + salt).hexdigest()
+  return '%s,%s' % (h, salt)
+
+
+def valid_pw(name, pw, h):
+  _salt = h.split(",")[1]
+  if h == make_pw_hash(name, pw, _salt):
+    return True
+  else:
+    return False
 
 
 class Handler(webapp2.RequestHandler):
@@ -38,7 +57,7 @@ class BlogsPage(Handler):
   BLOGS_PER_PAGE = 10
 
   def get(self):
-    self.response.headers['Content-Type'] = 'text/plain'
+    self.response.headers['Content-Type'] = 'text/html'
     visits = 0
     visit_cookie_str = self.request.cookies.get('visits')
 
@@ -50,7 +69,8 @@ class BlogsPage(Handler):
 
     new_cookie_val = make_secure_val(str(visits))
 
-    self.response.headers.add_headers('Set_Cookie', 'visits=%s' % new_cookie_val)
+    # self.response.headers.add_headers('Set_Cookie', 'visits=%s' % new_cookie_val)
+    self.response.headers['Set-Cookie'] = 'visits=%s' % new_cookie_val
 
     _blogs = Blog.query_blogs().fetch(self.BLOGS_PER_PAGE)
     self.render('blog.html', blogs=_blogs)
@@ -92,5 +112,39 @@ class PostPage(Handler):
 
     self.render("permalink.html", blog=post)
 
+class SignUpPage(Handler):
+
+  def get(self):
+    self.render('signup.html')
+
+  def post(self):
+    _username = self.request.get("username")
+    _pwd = self.request.get("pwd")
+    _verify_pwd = self.request.get("verify_pwd")
+    _email = self.request.get("email")
+
+    username_error = "Please enter Username"
+    pw_error = "Please enter password"
+    verify_pw_error = "Please verify password"
+    email_error = "Please enter email"
+
+    if _username and _pwd and _verify_pwd and _email:
+      if _pwd == _verify_pwd:
+        _hashpw = make_pw_hash(_username, _pwd)
+        newUser = User(username = _username, password = _hashpw, email=_email)
+        newUser.put()
+        self.redirect('/')
+      else:
+        self.render('signup.html', verify_pw_error=verify_pw_error)
+
+    if _username == "":
+      self.render('signup.html', username_error=username_error)
+    if _pwd == "":
+      self.render('signup.html', pw_error=pw_error)
+    if _verify_pwd == "":
+      self.render('signup.html', verify_pw_error=verify_pw_error)
+    if _email == "":
+      self.render('signup.html', email_error=email_error)
+
 app = webapp2.WSGIApplication(
-  [('/', BlogsPage), ('/newpost', AddNewPostPage), ('/blog/([0-9]+)', PostPage)], debug=True)
+  [('/', BlogsPage),('/newpost', AddNewPostPage), ('/blog/signup', SignUpPage), ('/blog/([0-9]+)', PostPage)], debug=True)
