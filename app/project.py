@@ -4,9 +4,22 @@ import webapp2
 import jinja2
 from models import Blog
 from google.appengine.ext import ndb
+import hmac
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir), autoescape=True)
+
+SECRET = "dfadsfalfhuhldfagfifuilcbzvjkzhcvFeygfiuldlvggliuvkbalyf"
+def hash_str(s):
+  return hmac.new(SECRET, s).hexdigest()
+
+def make_secure_val(s):
+  return "%s|%s" % (s, hash_str(s))
+
+def check_secure_val(h):
+  val = h.split('|')[0]
+  if h == make_secure_val(val):
+    return val
 
 
 class Handler(webapp2.RequestHandler):
@@ -25,6 +38,20 @@ class BlogsPage(Handler):
   BLOGS_PER_PAGE = 10
 
   def get(self):
+    self.response.headers['Content-Type'] = 'text/plain'
+    visits = 0
+    visit_cookie_str = self.request.cookies.get('visits')
+
+    if visit_cookie_str:
+      cookie_val = check_secure_val(visit_cookie_str)
+      if cookie_val:
+        visits = int(cookie_val)
+    visits += 1
+
+    new_cookie_val = make_secure_val(str(visits))
+
+    self.response.headers.add_headers('Set_Cookie', 'visits=%s' % new_cookie_val)
+
     _blogs = Blog.query_blogs().fetch(self.BLOGS_PER_PAGE)
     self.render('blog.html', blogs=_blogs)
 
