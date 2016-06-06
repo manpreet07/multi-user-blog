@@ -12,29 +12,34 @@ from models import Blog, User
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir), autoescape=True)
 
+
 def make_salt():
-  return ''.join(random.choice(string.letters) for x in xrange(5))
+  return ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in xrange(10))
+
 
 def hash_str(s):
   return hmac.new(make_salt(), s).hexdigest()
 
+
 def make_secure_val(s):
   return "%s|%s" % (s, hash_str(s))
+
 
 def check_secure_val(h):
   val = h.split('|')[0]
   if h == make_secure_val(val):
     return val
 
+
 def make_pw_hash(name, pw, salt=None):
   if not salt:
     salt = make_salt()
   h = hashlib.sha256(name + pw + salt).hexdigest()
-  return '%s,%s' % (h, salt)
+  return '%s,%s' % (salt,h)
 
 
 def valid_pw(name, pw, h):
-  _salt = h.split(",")[1]
+  _salt = h.split(",")[0]
   if h == make_pw_hash(name, pw, _salt):
     return True
   else:
@@ -52,28 +57,33 @@ class Handler(webapp2.RequestHandler):
   def render(self, template, **kw):
     self.write(self.render_str(template, **kw))
 
+  def read_secure_cookie(self, name):
+    cookie_val = self.request.cookies.get(name)
+    return cookie_val and check_secure_val(cookie_val)
+
+  def set_secure_cookie(self, name, val):
+    cookie_val = make_secure_val(val)
+    self.response.headers['Set-Cookie'] = '%s=%s' % (name, cookie_val)
+
+  def login(self, user):
+    self.set_secure_cookie('user_id', str(user))
+
+  def logout(self):
+    self.response.headers['Set-Cookie'] = 'user_id=; Path=/'
+
+  def initialize(self, *a, **kw):
+    webapp2.RequestHandler.initialize(self, *a, **kw)
+    uid = self.read_secure_cookie('user_id')
+    self.user = uid and User.by_id(int(uid))
+
 
 class BlogsPage(Handler):
   BLOGS_PER_PAGE = 10
 
   def get(self):
-    self.response.headers['Content-Type'] = 'text/html'
-    visits = 0
-    visit_cookie_str = self.request.cookies.get('visits')
-
-    if visit_cookie_str:
-      cookie_val = check_secure_val(visit_cookie_str)
-      if cookie_val:
-        visits = int(cookie_val)
-    visits += 1
-
-    new_cookie_val = make_secure_val(str(visits))
-
-    # self.response.headers.add_headers('Set_Cookie', 'visits=%s' % new_cookie_val)
-    self.response.headers['Set-Cookie'] = 'visits=%s' % new_cookie_val
-
     _blogs = Blog.query_blogs().fetch(self.BLOGS_PER_PAGE)
     self.render('blog.html', blogs=_blogs)
+
 
 class AddNewPostPage(Handler):
   def get(self):
@@ -87,7 +97,7 @@ class AddNewPostPage(Handler):
     _post_error = "Please enter post"
 
     if _title and _blog:
-      newPost = Blog(title = _title, blog = _blog)
+      newPost = Blog(title=_title, blog=_blog)
       _newPost_key = newPost.put()
       _newPostID = _newPost_key.id()
       self.redirect('/blog/%s' % str(_newPostID))
@@ -96,9 +106,9 @@ class AddNewPostPage(Handler):
       self.render('newpost.html', title_error=_title_error, post_error=_post_error)
     elif _title == "" or _blog == "":
       if _title == "":
-        self.render('newpost.html', title_error=_title_error, title = _title, blog=_blog)
+        self.render('newpost.html', title_error=_title_error, title=_title, blog=_blog)
       if _blog == "":
-        self.render('newpost.html', post_error=_post_error, title = _title, blog=_blog)
+        self.render('newpost.html', post_error=_post_error, title=_title, blog=_blog)
 
 
 class PostPage(Handler):
@@ -112,8 +122,8 @@ class PostPage(Handler):
 
     self.render("permalink.html", blog=post)
 
-class SignUpPage(Handler):
 
+class SignUpPage(Handler):
   def get(self):
     self.render('signup.html')
 
@@ -130,15 +140,50 @@ class SignUpPage(Handler):
 
     if _username and _pwd and _verify_pwd and _email:
       if _pwd == _verify_pwd:
-        _hashpw = make_pw_hash(_username, _pwd)
-        newUser = User(username = _username, password = _hashpw, email=_email)
+        newUser = User.register(_username, _pwd, _email)
         newUser.put()
-        self.render('welcome.html', user=newUser.username)
+        self.login(newUser)
+        self.render('blog.html', user=newUser)
       else:
         self.render('signup.html', verify_pw_error=verify_pw_error)
 
     if _username == "" or _pwd == "" or _verify_pwd == "" or _email == "":
-      self.render('signup.html', username_error=username_error,pw_error=pw_error,verify_pw_error=verify_pw_error,email_error=email_error)
+      self.render('signup.html', username_error=username_error, pw_error=pw_error, verify_pw_error=verify_pw_error,
+                  email_error=email_error)
 
-app = webapp2.WSGIApplication(
-  [('/', BlogsPage),('/newpost', AddNewPostPage), ('/blog/signup', SignUpPage), ('/blog/([0-9]+)', PostPage)], debug=True)
+
+class LoginPage(Handler):
+  def get(self):
+    self.render('login.html')
+
+  def post(self):
+    _username = self.request.get("username")
+    _pwd = self.request.get("password")
+
+    username_error = "Please enter Username"
+    pw_error = "Please enter password"
+    error = "Invalid Username or password entered"
+
+    if _username and _pwd:
+      user = User.login(_username, _pwd)
+      if (user):
+        self.login(user)
+        self.render('blog.html', user=user)
+      else:
+        self.render('login.html', error=error)
+    else:
+      self.render('login.html', username_error=username_error, pw_error=pw_error)
+
+
+class Logout(Handler):
+  def get(self):
+    self.logout()
+    self.redirect('/')
+
+
+app = webapp2.WSGIApplication([('/', BlogsPage),
+                               ('/newpost', AddNewPostPage),
+                               ('/login', LoginPage),
+                               ('/blog/signup', SignUpPage),
+                               ('/blog/([0-9]+)', PostPage),
+                               ('/logout', Logout),], debug=True)

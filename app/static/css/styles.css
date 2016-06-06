@@ -35,3 +35,20 @@ background-color: #fafafa
 p {
     white-space: pre-line;;
 }
+
+.navbar {
+    border-radius:0px;
+}
+
+.navbar-inverse {
+    background-color: #2496EE;
+    border-color: #2496EE;
+}
+
+.navbar-inverse .navbar-brand {
+    color: black;
+}
+
+.navbar-inverse .navbar-nav > li > a {
+    color: black;
+}
