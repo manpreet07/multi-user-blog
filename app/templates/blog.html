@@ -1,5 +1,6 @@
 {% extends "main.html" %}
 {% block content %}
+
   {% if blogs %}
       <h4><small>RECENT POSTS</small></h4>
       <hr>
@@ -7,7 +8,7 @@
       <div class="well">
         <h2>{{blog.title}}</h2>
         <hr>
-        <h5><span class="glyphicon glyphicon-time"></span> Post by Jane Dane, {{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</h5>
+        <h5><span class="glyphicon glyphicon-time"></span> Post by {{blog.creator}}, {{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</h5>
         <h5><span class="label label-danger"></span><span class="label label-primary"></span></h5><br>
         <p>{{blog.blog}}</p>
         <br><br>
@@ -15,7 +16,6 @@
       {% endfor %}
     {% else %}
       <h2>No blogs to display</h2>
-      <a href="/newpost"><button type="submit" class="btn btn-primary">Add new post</button></a>
     {% endif %}
 
 {% endblock %}
