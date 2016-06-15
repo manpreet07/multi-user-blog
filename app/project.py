@@ -4,18 +4,16 @@ import os
 import jinja2
 import webapp2
 from google.appengine.ext import ndb
-import random
-import string
 import hashlib
 from models import Blog, User
+
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir), autoescape=True)
 
 
 def make_salt():
-  return ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in xrange(10))
-
+  return "dsfkadb425b42534132erqerdfdsfarqewr31421324"
 
 def hash_str(s):
   return hmac.new(make_salt(), s).hexdigest()
@@ -69,20 +67,12 @@ class Handler(webapp2.RequestHandler):
     self.set_secure_cookie('user_id', str(user))
 
   def logout(self):
-    self.response.headers['Set-Cookie'] = 'user_id=; Path=/'
+    self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
 
   def initialize(self, *a, **kw):
     webapp2.RequestHandler.initialize(self, *a, **kw)
     uid = self.read_secure_cookie('user_id')
     self.user = uid and User.by_id(int(uid))
-
-
-class BlogsPage(Handler):
-  BLOGS_PER_PAGE = 10
-
-  def get(self):
-    _blogs = Blog.query_blogs().fetch(self.BLOGS_PER_PAGE)
-    self.render('blog.html', blogs=_blogs)
 
 
 class AddNewPostPage(Handler):
@@ -96,20 +86,21 @@ class AddNewPostPage(Handler):
     _title_error = "Please enter title"
     _post_error = "Please enter post"
 
-    if _title and _blog:
-      newPost = Blog(title=_title, blog=_blog)
-      _newPost_key = newPost.put()
-      _newPostID = _newPost_key.id()
-      self.redirect('/blog/%s' % str(_newPostID))
+    if self.user:
+      if _title and _blog:
+        print self.user
+        newPost = Blog(title=_title, blog=_blog, user=self.user)
+        _newPost_key = newPost.put()
+        _newPostID = _newPost_key.id()
+        self.redirect('/blog/%s' % str(_newPostID))
 
-    if _title == "" and _blog == "":
-      self.render('newpost.html', title_error=_title_error, post_error=_post_error)
-    elif _title == "" or _blog == "":
-      if _title == "":
-        self.render('newpost.html', title_error=_title_error, title=_title, blog=_blog)
-      if _blog == "":
-        self.render('newpost.html', post_error=_post_error, title=_title, blog=_blog)
-
+      if _title == "" and _blog == "":
+        self.render('newpost.html', title_error=_title_error, post_error=_post_error)
+      elif _title == "" or _blog == "":
+        if _title == "":
+          self.render('newpost.html', title_error=_title_error, title=_title, blog=_blog)
+        if _blog == "":
+          self.render('newpost.html', post_error=_post_error, title=_title, blog=_blog)
 
 class PostPage(Handler):
   def get(self, post_id):
@@ -140,10 +131,11 @@ class SignUpPage(Handler):
 
     if _username and _pwd and _verify_pwd and _email:
       if _pwd == _verify_pwd:
-        newUser = User.register(_username, _pwd, _email)
-        newUser.put()
+        _newUser = User.register(_username, _pwd, _email)
+        newUserKey = _newUser.put()
+        newUser = newUserKey.id()
         self.login(newUser)
-        self.render('blog.html', user=newUser)
+        self.render('blog.html', user=_newUser)
       else:
         self.render('signup.html', verify_pw_error=verify_pw_error)
 
@@ -167,10 +159,9 @@ class LoginPage(Handler):
     if _username and _pwd:
       user = User.login(_username, _pwd)
       if (user):
-        self.login(user)
-        self.render('blog.html', user=user)
-      else:
-        self.render('login.html', error=error)
+        _user = user.key.id()
+        self.login(_user)
+        self.redirect('/')
     else:
       self.render('login.html', username_error=username_error, pw_error=pw_error)
 
@@ -178,12 +169,21 @@ class LoginPage(Handler):
 class Logout(Handler):
   def get(self):
     self.logout()
-    self.redirect('/')
+    self.render('logout.html')
 
+class BlogsPage(Handler):
+  def get(self):
+    if self.user:
+      _blogs = Blog.query(Blog.user == self.user)
+      self.render('blog.html', blogs=_blogs, user=self.user)
+    else:
+      _blogs = Blog.query_blogs()
+      self.render('blog.html', blogs=_blogs)
 
 app = webapp2.WSGIApplication([('/', BlogsPage),
                                ('/newpost', AddNewPostPage),
                                ('/login', LoginPage),
+                               ('/logout', Logout),
                                ('/blog/signup', SignUpPage),
                                ('/blog/([0-9]+)', PostPage),
                                ('/logout', Logout),], debug=True)

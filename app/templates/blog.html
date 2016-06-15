@@ -1,21 +1,69 @@
 {% extends "main.html" %}
 {% block content %}
 
-  {% if blogs %}
-      <h4><small>RECENT POSTS</small></h4>
-      <hr>
-      {% for blog in blogs %}
-      <div class="well">
-        <h2>{{blog.title}}</h2>
-        <hr>
-        <h5><span class="glyphicon glyphicon-time"></span> Post by {{blog.creator}}, {{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</h5>
-        <h5><span class="label label-danger"></span><span class="label label-primary"></span></h5><br>
-        <p>{{blog.blog}}</p>
-        <br><br>
-         </div>
-      {% endfor %}
-    {% else %}
-      <h2>No blogs to display</h2>
-    {% endif %}
+  <nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/">Back of a Length</a>
+      </div>
+      <div class="collapse navbar-collapse" id="myNavbar">
+        <ul class="nav navbar-nav navbar-right">
+          {% if user %}
+          <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+          {% else %}
+          <li><a href="/login"><span class="glyphicon glyphicon-log-out"></span> Login</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
 
+    <div class="container-fluid">
+    <div class="row content">
+      <div class="col-sm-3 sidenav">
+        <ul class="nav nav-pills nav-stacked">
+          {% if user %}
+          <li><a href="/newpost">Add new post</a></li>
+          {% else %}
+          <li><a href="/">All posts</a></li>
+          {% endif %}
+        </ul><br>
+        <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search Blog..">
+        <span class="input-group-btn">
+          <button class="btn btn-default" type="button">
+            <span class="glyphicon glyphicon-search"></span>
+          </button>
+        </span>
+      </div>
+      </div>
+      <div class="col-sm-9">
+          {% if blogs %}
+
+            <h4><small>RECENT POSTS</small></h4>
+            <hr>
+            {% for blog in blogs %}
+            <div class="well">
+              <h2>{{blog.title}}</h2>
+              {% if user %}
+              <a href="#">Edit</a> | <a href="#">Delete</a>
+              {% endif %}
+              <hr>
+              <h5><span class="glyphicon glyphicon-time"></span> Post on {{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</h5>
+              <h5><span class="label label-danger"></span><span class="label label-primary"></span></h5><br>
+              <p>{{blog.blog}}</p>
+              <br><br>
+               </div>
+            {% endfor %}
+          {% else %}
+            <h2>No blogs to display</h2>
+          {% endif %}
+      </div>
+      </div>
+      </div>
 {% endblock %}
