@@ -42,12 +42,20 @@
 
           <div class="form-group">
           <label for="title">Title:</label>
-          <input type="text" class="form-control" id="title" placeholder="Enter title..." name="title">
+            {% if blog %}
+              <input type="text" class="form-control" id="title" placeholder="Enter title..." name="title" value="{{blog.title}}">
+            {% else %}
+              <input type="text" class="form-control" id="title" placeholder="Enter title..." name="title">
+            {% endif %}
             <label style="color:red;">{{title_error}}</label>
           </div>
           <div class="form-group">
             <label for="blog">Subject:</label>
+            {% if blog %}
+            <textarea rows="13" type="text" class="form-control" id="blog" placeholder="Enter post..." name="blog">{{blog.blog}}</textarea>
+            {% else %}
             <textarea rows="13" type="text" class="form-control" id="blog" placeholder="Enter post..." name="blog"></textarea>
+            {% endif %}
             <label style="color:red;">{{post_error}}</label>
           </div>
           <button class="btn btn-primary" type="submit">Submit</button>

@@ -86,9 +86,9 @@ class AddNewPostPage(Handler):
       self.redirect('/login')
 
   def post(self):
+    blog = {}
     _title = self.request.get("title")
     _blog = self.request.get("blog")
-
     _title_error = "Please enter title"
     _post_error = "Please enter post"
 
@@ -98,16 +98,16 @@ class AddNewPostPage(Handler):
         newPost = Blog(parent= user.key, title=_title, blog=_blog)
         _newPost_key = newPost.put()
         _newPostID = _newPost_key.id()
-
         self.redirect('/blog/%s' % str(_newPostID))
-
-      if _title == "" and _blog == "":
-        self.render('newpost.html', title_error=_title_error, post_error=_post_error)
       elif _title == "" or _blog == "":
         if _title == "":
-          self.render('newpost.html', title_error=_title_error, title=_title, blog=_blog)
+          blog["title"] = ""
+          blog["blog"] = _blog
+          self.render('newpost.html', title_error=_title_error, blog=blog)
         if _blog == "":
-          self.render('newpost.html', post_error=_post_error, title=_title, blog=_blog)
+          blog["title"] = _title
+          blog["blog"] = ""
+          self.render('newpost.html', post_error=_post_error, blog=blog)
     else:
       self.redirect('/login')
 
@@ -197,6 +197,10 @@ class BlogsPage(Handler):
       self.render('blog.html', blogs=_blogs, user=_user)
     else:
       _blogs = Blog.query_blogs()
+      print "########################"
+      for blog in _blogs:
+        print blog
+      print "########################"
       self.render('blog.html', blogs=_blogs)
 
 # Edit Post page class
