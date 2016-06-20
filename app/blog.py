@@ -61,7 +61,7 @@ class Handler(webapp2.RequestHandler):
 
   def set_secure_cookie(self, name, val):
     cookie_val = make_secure_val(val)
-    self.response.headers['Set-Cookie'] = '%s=%s' % (name, cookie_val)
+    self.response.headers.add_header('Set-Cookie', '%s=%s' % (name, cookie_val))
 
   def login(self, user):
     self.set_secure_cookie('user_id', str(user))
@@ -74,6 +74,8 @@ class Handler(webapp2.RequestHandler):
     uid = self.read_secure_cookie('user_id')
     self.user = uid and User.by_id(int(uid))
 
+  def blog_key(self, blogID):
+    return ndb.Key(User, str(blogID))
 
 class AddNewPostPage(Handler):
   def get(self):
@@ -88,10 +90,11 @@ class AddNewPostPage(Handler):
 
     if self.user:
       if _title and _blog:
-        print self.user
-        newPost = Blog(title=_title, blog=_blog, user=self.user)
+        user = self.user
+        newPost = Blog(parent= user.key, title=_title, blog=_blog)
         _newPost_key = newPost.put()
         _newPostID = _newPost_key.id()
+
         self.redirect('/blog/%s' % str(_newPostID))
 
       if _title == "" and _blog == "":
@@ -101,11 +104,15 @@ class AddNewPostPage(Handler):
           self.render('newpost.html', title_error=_title_error, title=_title, blog=_blog)
         if _blog == "":
           self.render('newpost.html', post_error=_post_error, title=_title, blog=_blog)
+    else:
+      self.redirect('/login')
 
 class PostPage(Handler):
   def get(self, post_id):
-    blog_key = ndb.Key(Blog, int(post_id))
-    post = blog_key.get()
+    user = self.user
+    parent = user.key
+    blog_key = Blog.by_id(int(post_id), parent)
+    post = blog_key
 
     if not post:
       self.error(404)
@@ -135,14 +142,13 @@ class SignUpPage(Handler):
         newUserKey = _newUser.put()
         newUser = newUserKey.id()
         self.login(newUser)
-        self.render('blog.html', user=_newUser)
+        self.render('welcome.html', user=_username)
       else:
         self.render('signup.html', verify_pw_error=verify_pw_error)
 
     if _username == "" or _pwd == "" or _verify_pwd == "" or _email == "":
       self.render('signup.html', username_error=username_error, pw_error=pw_error, verify_pw_error=verify_pw_error,
                   email_error=email_error)
-
 
 class LoginPage(Handler):
   def get(self):
@@ -162,9 +168,10 @@ class LoginPage(Handler):
         _user = user.key.id()
         self.login(_user)
         self.redirect('/')
+      else:
+        self.redirect('/blog/signup')
     else:
-      self.render('login.html', username_error=username_error, pw_error=pw_error)
-
+      self.render('blog.html', username_error=username_error, pw_error=pw_error, error=error)
 
 class Logout(Handler):
   def get(self):
@@ -174,11 +181,54 @@ class Logout(Handler):
 class BlogsPage(Handler):
   def get(self):
     if self.user:
-      _blogs = Blog.query(Blog.user == self.user)
-      self.render('blog.html', blogs=_blogs, user=self.user)
+      user_key = self.user
+      user_id = user_key.key.id()
+      _user = User.by_id(int(user_id))
+      _blogs = Blog.query(ancestor = user_key.key)
+      _blogs.fetch()
+      self.render('blog.html', blogs=_blogs, user=_user)
     else:
       _blogs = Blog.query_blogs()
       self.render('blog.html', blogs=_blogs)
+
+class EditPostPage(Handler):
+  def get(self, _postID):
+    if self.user:
+      blog_key = Blog.get_by_id(str(_postID))
+      print blog_key
+      _blog = blog_key.get()
+      print _blog
+      self.render('editpost.html', blog=_blog)
+
+  def post(self):
+    _title = self.request.get("title")
+    _blog = self.request.get("blog")
+
+    _title_error = "Please enter title"
+    _post_error = "Please enter post"
+
+    if self.user:
+      if _title and _blog:
+        _editpost = Blog(title=_title, blog=_blog, user=User.by_id(self.user.id()))
+        _editPost_key = _editpost.put()
+        _editPostID = _editPost_key.id()
+
+        self.redirect('/blog/%s' % str(_editPostID))
+
+      if _title == "" and _blog == "":
+        self.render('editpost.html', title_error=_title_error, post_error=_post_error)
+      elif _title == "" or _blog == "":
+        if _title == "":
+          self.render('editpost.html', title_error=_title_error, title=_title, blog=_blog)
+        if _blog == "":
+          self.render('editpost.html', post_error=_post_error, title=_title, blog=_blog)
+    else:
+      self.redirect('/login')
+
+class DeletePostPage(Handler):
+  def get(self):
+    if self.user:
+      self.render('deletepost.html')
 
 app = webapp2.WSGIApplication([('/', BlogsPage),
                                ('/newpost', AddNewPostPage),
@@ -186,4 +236,6 @@ app = webapp2.WSGIApplication([('/', BlogsPage),
                                ('/logout', Logout),
                                ('/blog/signup', SignUpPage),
                                ('/blog/([0-9]+)', PostPage),
+                               ('/editpost/([0-9]+)', EditPostPage),
+                               ('/deletepost/([0-9]+)', DeletePostPage),
                                ('/logout', Logout),], debug=True)

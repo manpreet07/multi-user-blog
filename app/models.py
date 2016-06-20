@@ -1,19 +1,31 @@
 
 
 from google.appengine.ext import ndb
-import project
+import blog
 
+class Blog(ndb.Model):
+
+    title = ndb.StringProperty(indexed=False)
+    blog = ndb.TextProperty(indexed=False)
+    dateTime = ndb.DateTimeProperty(auto_now_add=True)
+
+    @classmethod
+    def by_id(cls, uid, parent):
+        return Blog.get_by_id(uid, parent=parent)
+
+    @classmethod
+    def query_blogs(cls):
+        return cls.query().order(-cls.dateTime)
 
 class User(ndb.Model):
-    name = ndb.StringProperty(required=True)
-    pw_hash = ndb.StringProperty(required=True)
-    email = ndb.StringProperty()
+    name = ndb.StringProperty()
+    pw_hash = ndb.StringProperty(indexed=False)
+    email = ndb.StringProperty(indexed=False)
+    blogs = ndb.StructuredProperty(Blog, repeated=True)
 
     @classmethod
     def by_id(cls, uid):
-        _entity = ndb.Key('User', str(uid))
-        return _entity
-        # return User.get_by_id(uid)
+        return User.get_by_id(int(uid))
 
     @classmethod
     def by_name(cls, name):
@@ -22,7 +34,7 @@ class User(ndb.Model):
 
     @classmethod
     def register(cls, name, pw, email=None):
-        pw_hash = project.make_pw_hash(name, pw)
+        pw_hash = blog.make_pw_hash(name, pw)
         return User(name=name,
                     pw_hash=pw_hash,
                     email=email)
@@ -30,7 +42,7 @@ class User(ndb.Model):
     @classmethod
     def login(cls, name, pw):
         u = cls.by_name(name).get()
-        if u and project.valid_pw(name, pw, u.pw_hash):
+        if u and blog.valid_pw(name, pw, u.pw_hash):
             return u
 
     @classmethod
@@ -39,14 +51,5 @@ class User(ndb.Model):
         return u
 
 
-class Blog(ndb.Model):
 
-    title = ndb.StringProperty(required=True)
-    blog = ndb.TextProperty(required=True)
-    dateTime = ndb.DateTimeProperty(auto_now_add=True)
-    user = ndb.KeyProperty(kind='User')
-
-    @classmethod
-    def query_blogs(cls):
-        return cls.query().order(-cls.dateTime)
 
