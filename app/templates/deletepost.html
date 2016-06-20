@@ -1,6 +1,7 @@
 {% extends "main.html" %}
 {% block content %}
 
+
   <nav class="navbar navbar-inverse">
     <div class="container-fluid">
       <div class="navbar-header">
@@ -13,17 +14,12 @@
       </div>
       <div class="collapse navbar-collapse" id="myNavbar">
         <ul class="nav navbar-nav navbar-right">
-          {% if user %}
           <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
-          {% else %}
-          <li><a href="/login"><span class="glyphicon glyphicon-log-out"></span> Login</a></li>
-          {% endif %}
         </ul>
       </div>
     </div>
   </nav>
-
-    <div class="container-fluid">
+<div class="container-fluid">
     <div class="row content">
       <div class="col-sm-3 sidenav">
         <ul class="nav nav-pills nav-stacked">
@@ -43,27 +39,15 @@
       <!--</div>-->
       </div>
       <div class="col-sm-9">
-          {% if blogs %}
+      <div class="container-fluid">
+          <h2 align="center">Are you sure you want to delete {{blog.title}}</h2>
+        <form method="post" role="form">
+          <button class="btn btn-primary" type="submit">Submit</button>
+          <a onclick="window.location='/'; return false;"><button type="cancel" class="btn btn-danger">Cancel</button></a>
+        </form>
+      </div>
+        </div>
+      </div>
+      </div>
 
-            <h4><small>RECENT POSTS</small></h4>
-            <hr>
-            {% for blog in blogs %}
-            <div class="well">
-              <h2>{{blog.title}}</h2>
-              {% if user %}
-              <a href="/editpost/{{blog.key.id()}}">Edit</a> | <a href="#">Delete</a>
-              {% endif %}
-              <hr>
-              <h5><span class="glyphicon glyphicon-time"></span> Post on {{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</h5>
-              <h5><span class="label label-danger"></span><span class="label label-primary"></span></h5><br>
-              <p>{{blog.blog}}</p>
-              <br><br>
-               </div>
-            {% endfor %}
-          {% else %}
-            <h2>No blogs to display</h2>
-          {% endif %}
-      </div>
-      </div>
-      </div>
 {% endblock %}

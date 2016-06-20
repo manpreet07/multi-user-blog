@@ -14,13 +14,13 @@ handlers:
   static_dir: static
 
 - url: /blog/(.*)
-  static_dir: project.app
+  static_dir: blog.app
 
 - url: /blog/signup
-  static_dir: project.app
+  static_dir: blog.app
 
 - url: /.*
-  script: project.app
+  script: blog.app
 
 
 libraries:
