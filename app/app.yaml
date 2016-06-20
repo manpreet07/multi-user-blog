@@ -13,6 +13,12 @@ handlers:
 - url: /blog/static
   static_dir: static
 
+- url: /deletepost/static
+  static_dir: static
+
+- url: /editpost/static
+  static_dir: static
+
 - url: /blog/(.*)
   static_dir: blog.app
 

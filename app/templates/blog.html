@@ -51,7 +51,7 @@
             <div class="well">
               <h2>{{blog.title}}</h2>
               {% if user %}
-              <a href="/editpost/{{blog.key.id()}}">Edit</a> | <a href="#">Delete</a>
+              <a href="/editpost/{{blog.key.id()}}">Edit</a> | <a href="/deletepost/{{blog.key.id()}}">Delete</a>
               {% endif %}
               <hr>
               <h5><span class="glyphicon glyphicon-time"></span> Post on {{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</h5>

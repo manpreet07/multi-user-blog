@@ -23,11 +23,7 @@
     <div class="row content">
       <div class="col-sm-3 sidenav">
         <ul class="nav nav-pills nav-stacked">
-          {% if user %}
-          <li><a href="/newpost">Add new post</a></li>
-          {% else %}
           <li><a href="/">All posts</a></li>
-          {% endif %}
         </ul><br>
         <!--<div class="input-group">-->
         <!--<input type="text" class="form-control" placeholder="Search Blog..">-->
@@ -40,8 +36,12 @@
       </div>
       <div class="col-sm-9">
       <div class="container-fluid">
-          <h2 align="center">Are you sure you want to delete {{blog.title}}</h2>
+        <h2 align="center">Delete Post</h2>
+        <hr>
         <form method="post" role="form">
+          <h3>Are you sure you want to delete this post?</h3>
+          <br/>
+          <p>{{blog.title}}</p><br/>
           <button class="btn btn-primary" type="submit">Submit</button>
           <a onclick="window.location='/'; return false;"><button type="cancel" class="btn btn-danger">Cancel</button></a>
         </form>

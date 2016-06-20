@@ -6,36 +6,35 @@ import webapp2
 from google.appengine.ext import ndb
 import hashlib
 from models import Blog, User
-
+import datetime
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir), autoescape=True)
 
-
+# method return salt
 def make_salt():
   return "dsfkadb425b42534132erqerdfdsfarqewr31421324"
 
+# method to create hash string
 def hash_str(s):
   return hmac.new(make_salt(), s).hexdigest()
 
-
 def make_secure_val(s):
   return "%s|%s" % (s, hash_str(s))
-
 
 def check_secure_val(h):
   val = h.split('|')[0]
   if h == make_secure_val(val):
     return val
 
-
+# method to make hash password
 def make_pw_hash(name, pw, salt=None):
   if not salt:
     salt = make_salt()
   h = hashlib.sha256(name + pw + salt).hexdigest()
   return '%s,%s' % (salt,h)
 
-
+# method to validate hash password
 def valid_pw(name, pw, h):
   _salt = h.split(",")[0]
   if h == make_pw_hash(name, pw, _salt):
@@ -43,7 +42,7 @@ def valid_pw(name, pw, h):
   else:
     return False
 
-
+# Main Handler class
 class Handler(webapp2.RequestHandler):
   def write(self, *a, **kw):
     self.response.out.write(*a, **kw)
@@ -55,17 +54,21 @@ class Handler(webapp2.RequestHandler):
   def render(self, template, **kw):
     self.write(self.render_str(template, **kw))
 
+  # method to read cookies
   def read_secure_cookie(self, name):
     cookie_val = self.request.cookies.get(name)
     return cookie_val and check_secure_val(cookie_val)
 
+  # method to set cookies
   def set_secure_cookie(self, name, val):
     cookie_val = make_secure_val(val)
     self.response.headers.add_header('Set-Cookie', '%s=%s' % (name, cookie_val))
 
+  # method to login
   def login(self, user):
     self.set_secure_cookie('user_id', str(user))
 
+  # method to log out
   def logout(self):
     self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
 
@@ -74,12 +77,13 @@ class Handler(webapp2.RequestHandler):
     uid = self.read_secure_cookie('user_id')
     self.user = uid and User.by_id(int(uid))
 
-  def blog_key(self, blogID):
-    return ndb.Key(User, str(blogID))
-
+# Add new post page class
 class AddNewPostPage(Handler):
   def get(self):
-    self.render('newpost.html')
+    if self.user:
+      self.render('newpost.html')
+    else:
+      self.redirect('/login')
 
   def post(self):
     _title = self.request.get("title")
@@ -107,6 +111,7 @@ class AddNewPostPage(Handler):
     else:
       self.redirect('/login')
 
+# post page class
 class PostPage(Handler):
   def get(self, post_id):
     user = self.user
@@ -120,7 +125,7 @@ class PostPage(Handler):
 
     self.render("permalink.html", blog=post)
 
-
+# signup page class
 class SignUpPage(Handler):
   def get(self):
     self.render('signup.html')
@@ -150,6 +155,7 @@ class SignUpPage(Handler):
       self.render('signup.html', username_error=username_error, pw_error=pw_error, verify_pw_error=verify_pw_error,
                   email_error=email_error)
 
+# login page class
 class LoginPage(Handler):
   def get(self):
     self.render('login.html')
@@ -173,11 +179,13 @@ class LoginPage(Handler):
     else:
       self.render('blog.html', username_error=username_error, pw_error=pw_error, error=error)
 
+# logout page class
 class Logout(Handler):
   def get(self):
     self.logout()
     self.render('logout.html')
 
+# Blogs page class
 class BlogsPage(Handler):
   def get(self):
     if self.user:
@@ -191,44 +199,56 @@ class BlogsPage(Handler):
       _blogs = Blog.query_blogs()
       self.render('blog.html', blogs=_blogs)
 
+# Edit Post page class
 class EditPostPage(Handler):
   def get(self, _postID):
     if self.user:
-      blog_key = Blog.get_by_id(str(_postID))
-      print blog_key
-      _blog = blog_key.get()
-      print _blog
-      self.render('editpost.html', blog=_blog)
+      user = self.user
+      parent = user.key
+      blog_key = Blog.by_id(int(_postID), parent)
+      post = blog_key
+      self.render('editpost.html', blog=post)
 
-  def post(self):
+  def post(self, _postID):
     _title = self.request.get("title")
     _blog = self.request.get("blog")
-
-    _title_error = "Please enter title"
     _post_error = "Please enter post"
-
+    _title_error = "Please enter title"
     if self.user:
       if _title and _blog:
-        _editpost = Blog(title=_title, blog=_blog, user=User.by_id(self.user.id()))
-        _editPost_key = _editpost.put()
-        _editPostID = _editPost_key.id()
-
-        self.redirect('/blog/%s' % str(_editPostID))
-
-      if _title == "" and _blog == "":
-        self.render('editpost.html', title_error=_title_error, post_error=_post_error)
+        user = self.user
+        parent = user.key
+        blog_key = Blog.by_id(int(_postID), parent)
+        blog_key.title=_title
+        blog_key.blog=_blog
+        blog_key.put()
+        self.redirect('/')
       elif _title == "" or _blog == "":
         if _title == "":
-          self.render('editpost.html', title_error=_title_error, title=_title, blog=_blog)
+          blog = {"title":"", "blog": _blog}
+          self.render('editpost.html', title_error=_title_error, blog=blog)
         if _blog == "":
-          self.render('editpost.html', post_error=_post_error, title=_title, blog=_blog)
+          blog = {"title": _title, "blog": ""}
+          self.render('editpost.html', post_error=_post_error, blog=blog)
     else:
       self.redirect('/login')
 
+# Delete page class
 class DeletePostPage(Handler):
-  def get(self):
+  def get(self, deletID):
     if self.user:
-      self.render('deletepost.html')
+      user = self.user
+      parent = user.key
+      blog_key = Blog.by_id(int(deletID), parent)
+      post = blog_key
+      self.render('deletepost.html', blog=post)
+
+  def post(self, deletID):
+    user = self.user
+    parent = user.key
+    blog_key = Blog.by_id(int(deletID), parent)
+    blog_key.key.delete()
+    self.redirect("/")
 
 app = webapp2.WSGIApplication([('/', BlogsPage),
                                ('/newpost', AddNewPostPage),
