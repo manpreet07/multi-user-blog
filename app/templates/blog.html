@@ -33,14 +33,6 @@
           <li><a href="/">All posts</a></li>
           {% endif %}
         </ul><br>
-        <!--<div class="input-group">-->
-        <!--<input type="text" class="form-control" placeholder="Search Blog..">-->
-        <!--<span class="input-group-btn">-->
-          <!--<button class="btn btn-default" type="button">-->
-            <!--<span class="glyphicon glyphicon-search"></span>-->
-          <!--</button>-->
-        <!--</span>-->
-      <!--</div>-->
       </div>
       <div class="col-sm-9">
           {% if blogs %}
@@ -52,18 +44,55 @@
               <h2>{{blog.title}}</h2>
               {% if user %}
               <a href="/editpost/{{blog.key.id()}}">Edit</a> | <a href="/deletepost/{{blog.key.id()}}">Delete</a>
+              {% else %}
+              {% set id = blog.key.id() %}
+              <a href="/comment/{{id}}">Comment</a>
               {% endif %}
               <hr>
               <h5><span class="glyphicon glyphicon-time"></span> Post on {{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</h5>
               <h5><span class="label label-danger"></span><span class="label label-primary"></span></h5><br>
               <p>{{blog.blog}}</p>
               <br><br>
-               </div>
+              <!--{% if not user %}-->
+                <!--<div class="like">-->
+                  <!--<button type="button" class="btn btn-default btn-sm">-->
+                    <!--<span class="glyphicon glyphicon-thumbs-up"></span>-->
+                    <!--Like <input class="qty1" name="qty1" readonly="readonly" type="text" value="0" />-->
+                  <!--</button>-->
+                  <!--</div>-->
+                <!--<div class="dislike">-->
+                  <!--<button type="button" class="btn btn-default btn-sm">-->
+                    <!--<span class="glyphicon glyphicon-thumbs-down"></span>-->
+                    <!--Dislike <input class="qty2"  name="qty2" readonly="readonly" type="text" value="0" />-->
+                  <!--</button>-->
+                 <!--</div>-->
+                <!--<hr>-->
+                <!--<h4>Leave a Comment:</h4>-->
+                <!--<form role="form">-->
+                  <!--<div class="form-group">-->
+                    <!--<textarea class="form-control" rows="3" required></textarea>-->
+                  <!--</div>-->
+                  <!--<button type="submit" class="btn btn-success">Submit</button>-->
+                <!--</form>-->
+                <!--<br><br>-->
+              <!--{% endif %}-->
+              <p><span class="badge">1</span> Comments:</p><br>
+              <div class="row">
+                <div class="col-sm-2 text-center">
+                  <!--<img src="bandmember.jpg" class="img-circle" height="65" width="65" alt="Avatar">-->
+                </div>
+                <div class="col-sm-10">
+                  <h4>Anja <small>Sep 29, 2015, 9:12 PM</small></h4>
+                  <p>{{blog.comments}}</p>
+                  <br/>
+                </div>
+              </div>
+              </div>
             {% endfor %}
           {% else %}
             <h2>No blogs to display</h2>
           {% endif %}
       </div>
-      </div>
+    </div>
       </div>
 {% endblock %}

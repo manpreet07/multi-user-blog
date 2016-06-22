@@ -19,6 +19,9 @@ handlers:
 - url: /editpost/static
   static_dir: static
 
+- url: /comment/static
+  static_dir: static
+
 - url: /blog/(.*)
   static_dir: blog.app
 

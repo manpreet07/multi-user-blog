@@ -5,27 +5,32 @@ import jinja2
 import webapp2
 from google.appengine.ext import ndb
 import hashlib
-from models import Blog, User
+from models import Blog, User, Comment
 import datetime
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir), autoescape=True)
 
+
 # method return salt
 def make_salt():
   return "dsfkadb425b42534132erqerdfdsfarqewr31421324"
+
 
 # method to create hash string
 def hash_str(s):
   return hmac.new(make_salt(), s).hexdigest()
 
+
 def make_secure_val(s):
   return "%s|%s" % (s, hash_str(s))
+
 
 def check_secure_val(h):
   val = h.split('|')[0]
   if h == make_secure_val(val):
     return val
+
 
 # method to make hash password
 def make_pw_hash(name, pw, salt=None):
@@ -34,6 +39,7 @@ def make_pw_hash(name, pw, salt=None):
   h = hashlib.sha256(name + pw + salt).hexdigest()
   return '%s,%s' % (salt,h)
 
+
 # method to validate hash password
 def valid_pw(name, pw, h):
   _salt = h.split(",")[0]
@@ -41,6 +47,7 @@ def valid_pw(name, pw, h):
     return True
   else:
     return False
+
 
 # Main Handler class
 class Handler(webapp2.RequestHandler):
@@ -77,6 +84,7 @@ class Handler(webapp2.RequestHandler):
     uid = self.read_secure_cookie('user_id')
     self.user = uid and User.by_id(int(uid))
 
+
 # Add new post page class
 class AddNewPostPage(Handler):
   def get(self):
@@ -111,6 +119,7 @@ class AddNewPostPage(Handler):
     else:
       self.redirect('/login')
 
+
 # post page class
 class PostPage(Handler):
   def get(self, post_id):
@@ -124,6 +133,7 @@ class PostPage(Handler):
       return
 
     self.render("permalink.html", blog=post)
+
 
 # signup page class
 class SignUpPage(Handler):
@@ -155,6 +165,7 @@ class SignUpPage(Handler):
       self.render('signup.html', username_error=username_error, pw_error=pw_error, verify_pw_error=verify_pw_error,
                   email_error=email_error)
 
+
 # login page class
 class LoginPage(Handler):
   def get(self):
@@ -179,11 +190,13 @@ class LoginPage(Handler):
     else:
       self.render('blog.html', username_error=username_error, pw_error=pw_error, error=error)
 
+
 # logout page class
 class Logout(Handler):
   def get(self):
     self.logout()
     self.render('logout.html')
+
 
 # Blogs page class
 class BlogsPage(Handler):
@@ -197,11 +210,11 @@ class BlogsPage(Handler):
       self.render('blog.html', blogs=_blogs, user=_user)
     else:
       _blogs = Blog.query_blogs()
-      print "########################"
-      for blog in _blogs:
-        print blog
-      print "########################"
+      print "###################"
+      print _blogs.fetch()
+      print "###################"
       self.render('blog.html', blogs=_blogs)
+
 
 # Edit Post page class
 class EditPostPage(Handler):
@@ -237,6 +250,7 @@ class EditPostPage(Handler):
     else:
       self.redirect('/login')
 
+
 # Delete page class
 class DeletePostPage(Handler):
   def get(self, deletID):
@@ -254,9 +268,23 @@ class DeletePostPage(Handler):
     blog_key.key.delete()
     self.redirect("/")
 
+
+# Edit Post page class
+class CommentPage(Handler):
+  def get(self, _postID):
+    self.render('comment.html')
+
+  def post(self, _postID):
+    _comment = self.request.get("comment")
+    blog_key = ndb.Key(Blog, int(_postID))
+    comment = Comment(parent=blog_key, comment=_comment)
+    comment.put()
+    self.redirect('/')
+
 app = webapp2.WSGIApplication([('/', BlogsPage),
                                ('/newpost', AddNewPostPage),
                                ('/login', LoginPage),
+                               ('/comment/([0-9]+)', CommentPage),
                                ('/logout', Logout),
                                ('/blog/signup', SignUpPage),
                                ('/blog/([0-9]+)', PostPage),
