@@ -3,11 +3,16 @@
 from google.appengine.ext import ndb
 import blog
 
-class Blog(ndb.Model):
 
+class Comment(ndb.Model):
+    comment = ndb.StringProperty()
+
+
+class Blog(ndb.Model):
     title = ndb.StringProperty(indexed=False)
     blog = ndb.TextProperty(indexed=False)
     dateTime = ndb.DateTimeProperty(auto_now_add=True)
+    comments = ndb.KeyProperty(Comment, repeated=True)
 
     @classmethod
     def by_id(cls, uid, parent):
@@ -17,11 +22,12 @@ class Blog(ndb.Model):
     def query_blogs(cls):
         return cls.query().order(-cls.dateTime)
 
+
 class User(ndb.Model):
     name = ndb.StringProperty()
     pw_hash = ndb.StringProperty(indexed=False)
     email = ndb.StringProperty(indexed=False)
-    blogs = ndb.StructuredProperty(Blog, repeated=True)
+    blogs = ndb.KeyProperty(Blog,repeated=True)
 
     @classmethod
     def by_id(cls, uid):

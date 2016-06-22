@@ -59,3 +59,13 @@ footer{
     border-color: #2496EE;
     color: white;
 }
+
+.qty1, .qty2 {
+    border: none;
+    width:20px;
+    background: transparent;
+}
+
+.like, .dislike {
+    display: inline-block;
+}
