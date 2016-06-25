@@ -3,31 +3,10 @@
 from google.appengine.ext import ndb
 import blog
 
-
-class Comment(ndb.Model):
-    comment = ndb.StringProperty()
-
-
-class Blog(ndb.Model):
-    title = ndb.StringProperty(indexed=False)
-    blog = ndb.TextProperty(indexed=False)
-    dateTime = ndb.DateTimeProperty(auto_now_add=True)
-    comments = ndb.KeyProperty(Comment, repeated=True)
-
-    @classmethod
-    def by_id(cls, uid, parent):
-        return Blog.get_by_id(uid, parent=parent)
-
-    @classmethod
-    def query_blogs(cls):
-        return cls.query().order(-cls.dateTime)
-
-
 class User(ndb.Model):
     name = ndb.StringProperty()
-    pw_hash = ndb.StringProperty(indexed=False)
-    email = ndb.StringProperty(indexed=False)
-    blogs = ndb.KeyProperty(Blog,repeated=True)
+    pw_hash = ndb.StringProperty()
+    email = ndb.StringProperty()
 
     @classmethod
     def by_id(cls, uid):
@@ -55,6 +34,28 @@ class User(ndb.Model):
     def get_all_posts(cls):
         u = User.query()
         return u
+
+
+class Comment(ndb.Model):
+    comment = ndb.StringProperty()
+    postedOn = ndb.DateTimeProperty(auto_now_add=True)
+    user = ndb.KeyProperty(kind=User)
+
+
+class Blog(ndb.Model):
+    title = ndb.StringProperty()
+    blog = ndb.TextProperty()
+    dateTime = ndb.DateTimeProperty(auto_now_add=True)
+    user = ndb.KeyProperty(kind=User)
+    comments = ndb.KeyProperty(kind=Comment, repeated=True)
+
+    @classmethod
+    def by_id(cls, uid, parent):
+        return Blog.get_by_id(uid, parent=parent)
+
+    @classmethod
+    def query_blogs(cls):
+        return cls.query().order(-cls.dateTime)
 
 
 

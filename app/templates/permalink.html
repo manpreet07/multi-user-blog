@@ -43,7 +43,8 @@
             <hr>
             <div class="well">
               <h2>{{blog.title}}</h2>
-              <a href="#">Edit</a> | <a href="#">Delete</a>
+              <a href="/editpost/{{blog.key.id()}}">Edit</a> | <a href="/deletepost/{{blog.key.id()}}">Delete</a>
+              | <a href="/comment/{{blog.key.id()}}">Comment</a>
               <hr>
               <h5><span class="glyphicon glyphicon-time"></span> Post on {{blog.dateTime.strftime('%B-%d-%Y at %I:%M:%S')}}</h5>
               <h5><span class="label label-danger"></span><span class="label label-primary"></span></h5><br>

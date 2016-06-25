@@ -103,7 +103,7 @@ class AddNewPostPage(Handler):
     if self.user:
       if _title and _blog:
         user = self.user
-        newPost = Blog(parent= user.key, title=_title, blog=_blog)
+        newPost = Blog(user= user.key, title=_title, blog=_blog)
         _newPost_key = newPost.put()
         _newPostID = _newPost_key.id()
         self.redirect('/blog/%s' % str(_newPostID))
@@ -125,7 +125,7 @@ class PostPage(Handler):
   def get(self, post_id):
     user = self.user
     parent = user.key
-    blog_key = Blog.by_id(int(post_id), parent)
+    blog_key = Blog.get_by_id(int(post_id))
     post = blog_key
 
     if not post:
@@ -205,15 +205,14 @@ class BlogsPage(Handler):
       user_key = self.user
       user_id = user_key.key.id()
       _user = User.by_id(int(user_id))
-      _blogs = Blog.query(ancestor = user_key.key)
-      _blogs.fetch()
+      _blogs = Blog.query_blogs().fetch()
+      for blog in _blogs:
+        for blog in blog.comments:
+          print blog.get()
       self.render('blog.html', blogs=_blogs, user=_user)
     else:
-      _blogs = Blog.query_blogs()
-      print "###################"
-      print _blogs.fetch()
-      print "###################"
-      self.render('blog.html', blogs=_blogs)
+      _blogs = Blog.query_blogs().fetch()
+      self.render('blog.html', blogs=_blogs, user=None)
 
 
 # Edit Post page class
@@ -222,7 +221,7 @@ class EditPostPage(Handler):
     if self.user:
       user = self.user
       parent = user.key
-      blog_key = Blog.by_id(int(_postID), parent)
+      blog_key = Blog.get_by_id(int(_postID))
       post = blog_key
       self.render('editpost.html', blog=post)
 
@@ -235,7 +234,7 @@ class EditPostPage(Handler):
       if _title and _blog:
         user = self.user
         parent = user.key
-        blog_key = Blog.by_id(int(_postID), parent)
+        blog_key = Blog.get_by_id(int(_postID))
         blog_key.title=_title
         blog_key.blog=_blog
         blog_key.put()
@@ -257,14 +256,14 @@ class DeletePostPage(Handler):
     if self.user:
       user = self.user
       parent = user.key
-      blog_key = Blog.by_id(int(deletID), parent)
+      blog_key = Blog.get_by_id(int(deletID))
       post = blog_key
       self.render('deletepost.html', blog=post)
 
   def post(self, deletID):
     user = self.user
     parent = user.key
-    blog_key = Blog.by_id(int(deletID), parent)
+    blog_key = Blog.get_by_id(int(deletID))
     blog_key.key.delete()
     self.redirect("/")
 
@@ -272,14 +271,25 @@ class DeletePostPage(Handler):
 # Edit Post page class
 class CommentPage(Handler):
   def get(self, _postID):
-    self.render('comment.html')
+    blog_key = Blog.get_by_id(int(_postID))
+    self.render('comment.html', blog=blog_key)
 
   def post(self, _postID):
-    _comment = self.request.get("comment")
-    blog_key = ndb.Key(Blog, int(_postID))
-    comment = Comment(parent=blog_key, comment=_comment)
-    comment.put()
-    self.redirect('/')
+    if self.user:
+      _user = self.user
+      user_id = _user.key.id()
+      user_key = User.get_by_id(int(user_id))
+      _comment = self.request.get("comment")
+      blog_key = Blog.get_by_id(int(_postID))
+      comment = Comment(comment=_comment, user=user_key.key)
+      comment_key = comment.put()
+      blog = blog_key.key.get()
+      blog.comments.append(comment_key)
+      blog.put()
+      self.redirect('/')
+    else:
+      self.redirect('/login')
+
 
 app = webapp2.WSGIApplication([('/', BlogsPage),
                                ('/newpost', AddNewPostPage),
