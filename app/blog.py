@@ -5,7 +5,7 @@ import jinja2
 import webapp2
 from google.appengine.ext import ndb
 import hashlib
-from models import Blog, User, Comment
+from models import Blog, User, Comment, Like
 import datetime
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -14,7 +14,7 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir), aut
 
 # method return salt
 def make_salt():
-  return "dsfkadb425b42534132erqerdfdsfarqewr31421324"
+  return "dsfkadb425b42534132erada34sdsadaas1234sqedq2112e21e22312qerdfdsfarqewr31421324"
 
 
 # method to create hash string
@@ -104,9 +104,14 @@ class AddNewPostPage(Handler):
       if _title and _blog:
         user = self.user
         newPost = Blog(user= user.key, title=_title, blog=_blog)
-        _newPost_key = newPost.put()
-        _newPostID = _newPost_key.id()
-        self.redirect('/blog/%s' % str(_newPostID))
+        newPost_key = newPost.put()
+        newPostID = newPost_key.id()
+        like = Like(user= user.key, blog=newPost_key)
+        like_key = like.put()
+        blog = newPost_key.get()
+        blog.likes.append(like_key)
+        blog.put()
+        self.redirect('/blog/%s' % str(newPostID))
       elif _title == "" or _blog == "":
         if _title == "":
           blog["title"] = ""
@@ -153,11 +158,15 @@ class SignUpPage(Handler):
 
     if _username and _pwd and _verify_pwd and _email:
       if _pwd == _verify_pwd:
-        _newUser = User.register(_username, _pwd, _email)
-        newUserKey = _newUser.put()
-        newUser = newUserKey.id()
-        self.login(newUser)
-        self.render('welcome.html', user=_username)
+        _user = User.query(User.name==_username)
+        if _user is None:
+          _newUser = User.register(_username, _pwd, _email)
+          newUserKey = _newUser.put()
+          newUser = newUserKey.id()
+          self.login(newUser)
+          self.render('welcome.html', user=_username)
+        else:
+          self.render('signup.html', username_error="User already exist")
       else:
         self.render('signup.html', verify_pw_error=verify_pw_error)
 
@@ -206,9 +215,10 @@ class BlogsPage(Handler):
       user_id = user_key.key.id()
       _user = User.by_id(int(user_id))
       _blogs = Blog.query_blogs().fetch()
+      print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
       for blog in _blogs:
-        for blog in blog.comments:
-          print blog.get()
+        for like in blog.likes:
+          print like.get().like
       self.render('blog.html', blogs=_blogs, user=_user)
     else:
       _blogs = Blog.query_blogs().fetch()
@@ -268,7 +278,7 @@ class DeletePostPage(Handler):
     self.redirect("/")
 
 
-# Edit Post page class
+# Comment page class
 class CommentPage(Handler):
   def get(self, _postID):
     blog_key = Blog.get_by_id(int(_postID))
@@ -291,10 +301,74 @@ class CommentPage(Handler):
       self.redirect('/login')
 
 
+# Edit Comment page class
+class EditCommentPage(Handler):
+  def get(self, _postID):
+    if self.user:
+      comment_key = Comment.get_by_id(int(_postID))
+      post = comment_key
+      self.render('editcomment.html', comment=post)
+    else:
+      self.redirect('/login')
+
+  def post(self, _postID):
+    _comment = self.request.get("comment")
+    _comment_error = "Please enter comment"
+    if self.user:
+      if _comment:
+        comment_key = Comment.get_by_id(int(_postID))
+        comment_key.comment=_comment
+        comment_key.put()
+        self.redirect('/')
+      elif _comment == "":
+        self.render('editcomment.html', _comment_error=_comment_error,)
+    else:
+      self.redirect('/login')
+
+
+# Delete Comment page class
+class DeleteCommentPage(Handler):
+  def get(self, deleteID):
+    if self.user:
+      comment_key = Comment.get_by_id(int(deleteID))
+      post = comment_key
+      self.render('deletecomment.html', comment=post)
+    else:
+      self.redirect('/login')
+
+  def post(self, deleteID):
+    if self.user:
+      comment_key = Comment.get_by_id(int(deleteID))
+      comment_key.key.delete()
+      self.redirect("/")
+    else:
+      self.redirect('/login')
+
+
+# class LikeBlog(Handler):
+#
+#   def post(self, _postID):
+#     if self.user:
+#       _user = self.user
+#       user_id = _user.key.id()
+#       user_key = User.get_by_id(int(user_id))
+#       _like = self.request.get("comment")
+#       blog_key = Blog.get_by_id(int(_postID))
+#       comment = Comment(comment=_comment, user=user_key.key)
+#       comment_key = comment.put()
+#       blog = blog_key.key.get()
+#       blog.comments.append(comment_key)
+#       blog.put()
+#       self.redirect('/')
+#     else:
+#       self.redirect('/login')
+
 app = webapp2.WSGIApplication([('/', BlogsPage),
                                ('/newpost', AddNewPostPage),
                                ('/login', LoginPage),
                                ('/comment/([0-9]+)', CommentPage),
+                               ('/editcomment/([0-9]+)', EditCommentPage),
+                               ('/deletecomment/([0-9]+)', DeleteCommentPage),
                                ('/logout', Logout),
                                ('/blog/signup', SignUpPage),
                                ('/blog/([0-9]+)', PostPage),

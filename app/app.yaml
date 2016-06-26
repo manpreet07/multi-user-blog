@@ -19,6 +19,13 @@ handlers:
 - url: /editpost/static
   static_dir: static
 
+- url: /editcomment/static
+  static_dir: static
+
+- url: /deletecomment/static
+  static_dir: static
+
+
 - url: /comment/static
   static_dir: static
 

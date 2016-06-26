@@ -66,6 +66,10 @@ footer{
     background: transparent;
 }
 
-.like, .dislike {
+.like {
     display: inline-block;
+}
+
+#like {
+    background-color: #fafafa
 }
