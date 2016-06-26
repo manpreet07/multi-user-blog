@@ -55,40 +55,36 @@
               <h5><span class="label label-danger"></span><span class="label label-primary"></span></h5><br>
               <p>{{blog.blog}}</p>
               <br><br>
-              <!--{% if not user %}-->
-                <!--<div class="like">-->
-                  <!--<button type="button" class="btn btn-default btn-sm">-->
-                    <!--<span class="glyphicon glyphicon-thumbs-up"></span>-->
-                    <!--Like <input class="qty1" name="qty1" readonly="readonly" type="text" value="0" />-->
-                  <!--</button>-->
-                  <!--</div>-->
-                <!--<div class="dislike">-->
-                  <!--<button type="button" class="btn btn-default btn-sm">-->
-                    <!--<span class="glyphicon glyphicon-thumbs-down"></span>-->
-                    <!--Dislike <input class="qty2"  name="qty2" readonly="readonly" type="text" value="0" />-->
-                  <!--</button>-->
-                 <!--</div>-->
-                <!--<hr>-->
-                <!--<h4>Leave a Comment:</h4>-->
-                <!--<form role="form">-->
-                  <!--<div class="form-group">-->
-                    <!--<textarea class="form-control" rows="3" required></textarea>-->
-                  <!--</div>-->
-                  <!--<button type="submit" class="btn btn-success">Submit</button>-->
-                <!--</form>-->
-                <!--<br><br>-->
-              <!--{% endif %}-->
+                <div class="like">
+                {% for like in blog.likes %}
+                      {% if like.get().like == 0 %}
+                        <form method="post">
+                          <button type="button" name="like" class="btn btn-default btn-sm">
+                            <span class="glyphicon glyphicon-thumbs-up"></span>Like
+                          </button>
+                        </form>
+                      {% endif %}
+                      {% if like.get().like == 1 %}
+                        <form method="post">
+                          <button type="button" id="like" name="dislike" class="btn btn-default btn-sm">
+                            <span class="glyphicon glyphicon-thumbs-down"></span>Like
+                          </button>
+                        </form>
+                      {% endif %}
+                {% endfor %}
+                </div>
+              <br><br>
               <p><span class="badge"></span> Comments:</p><hr>
               {% for comment in blog.comments %}
-              {% if blog.comments %}
+              {% if comment.get() %}
                 <div class="row">
-                  <!--<div class="col-sm-2 text-center">-->
-                    <!--<img src="bandmember.jpg" class="img-circle" height="65" width="65" alt="Avatar">-->
-                  <!--</div>-->
                   <div class="col-sm-10">
                     <h4><small>Commented by </small>{{comment.get().user.get().name}}
                       <small>on {{comment.get().postedOn.strftime('%B-%d-%Y at %I:%M:%S')}}</small>
                     </h4>
+                    {% if comment.get().user.get().name == user.name %}
+                    <a href="/editcomment/{{comment.id()}}">Edit</a> | <a href="/deletecomment/{{comment.id()}}">Delete</a>
+                    {% endif %}
                     <p>{{comment.get().comment}}</p>
                     <br/>
                   </div>

@@ -3,6 +3,7 @@
 from google.appengine.ext import ndb
 import blog
 
+
 class User(ndb.Model):
     name = ndb.StringProperty()
     pw_hash = ndb.StringProperty()
@@ -42,12 +43,19 @@ class Comment(ndb.Model):
     user = ndb.KeyProperty(kind=User)
 
 
+class Like(ndb.Model):
+    like = ndb.IntegerProperty(default=0)
+    blog = ndb.KeyProperty(kind='Blog')
+    user = ndb.KeyProperty(kind=User)
+
+
 class Blog(ndb.Model):
     title = ndb.StringProperty()
     blog = ndb.TextProperty()
     dateTime = ndb.DateTimeProperty(auto_now_add=True)
     user = ndb.KeyProperty(kind=User)
     comments = ndb.KeyProperty(kind=Comment, repeated=True)
+    likes = ndb.KeyProperty(kind=Like, repeated=True)
 
     @classmethod
     def by_id(cls, uid, parent):

@@ -13,7 +13,7 @@
       </div>
       <div class="collapse navbar-collapse" id="myNavbar">
         <ul class="nav navbar-nav navbar-right">
-          <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Login</a></li>
+          <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
         </ul>
       </div>
     </div>
@@ -28,14 +28,13 @@
       </div>
 
       <div class="col-sm-9">
-          <h4><small>COMMENT POST</small></h4>
+          <h4><small>EDIT COMMENT</small></h4>
         <hr>
         <div class="well">
-          <p><b>Post Title</b> : {{blog.title}}</p><br/>
-          <h4>Leave a Comment:</h4>
+          <h4>Update Comment:</h4>
                 <form role="form" method="post">
                   <div class="form-group">
-                    <textarea class="form-control" rows="3" required name="comment"></textarea>
+                    <textarea class="form-control" rows="3" required name="comment">{{comment.comment}}</textarea>
                   </div>
                   <button type="submit" class="btn btn-success">Submit</button>
                   <a onclick="window.location='/'; return false;"><button type="cancel" class="btn btn-danger">Cancel</button></a>
