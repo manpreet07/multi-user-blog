@@ -71,5 +71,14 @@ footer{
 }
 
 #like {
-    background-color: #fafafa
+    background-color: #2496EE;
+    color: whitesmoke;
+}
+
+#postlike{
+display: inline-flex;
+}
+
+.likes{
+padding: 5px 10px;
 }

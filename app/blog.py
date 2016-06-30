@@ -3,10 +3,8 @@ import os
 
 import jinja2
 import webapp2
-from google.appengine.ext import ndb
 import hashlib
 from models import Blog, User, Comment, Like
-import datetime
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir), autoescape=True)
@@ -106,11 +104,11 @@ class AddNewPostPage(Handler):
         newPost = Blog(user= user.key, title=_title, blog=_blog)
         newPost_key = newPost.put()
         newPostID = newPost_key.id()
-        like = Like(user= user.key, blog=newPost_key)
-        like_key = like.put()
-        blog = newPost_key.get()
-        blog.likes.append(like_key)
-        blog.put()
+        # like = Like(user= user.key, blog=newPost_key)
+        # like_key = like.put()
+        # blog = newPost_key.get()
+        # blog.likes.append(like_key)
+        # blog.put()
         self.redirect('/blog/%s' % str(newPostID))
       elif _title == "" or _blog == "":
         if _title == "":
@@ -158,7 +156,8 @@ class SignUpPage(Handler):
 
     if _username and _pwd and _verify_pwd and _email:
       if _pwd == _verify_pwd:
-        _user = User.query(User.name==_username)
+        _user = User.query(User.name==_username).get()
+        print _user
         if _user is None:
           _newUser = User.register(_username, _pwd, _email)
           newUserKey = _newUser.put()
@@ -215,14 +214,51 @@ class BlogsPage(Handler):
       user_id = user_key.key.id()
       _user = User.by_id(int(user_id))
       _blogs = Blog.query_blogs().fetch()
-      print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-      for blog in _blogs:
-        for like in blog.likes:
-          print like.get().like
-      self.render('blog.html', blogs=_blogs, user=_user)
+      likes = Like.query().fetch()
+      isliked = self.isLiked(_blogs, likes)
+      self.render('blog.html', blogs=_blogs, user=_user, likes=likes, isLiked=isliked)
     else:
       _blogs = Blog.query_blogs().fetch()
-      self.render('blog.html', blogs=_blogs, user=None)
+      self.render('blog.html', blogs=_blogs, user=None, likes=None, isLiked=None)
+
+  def post(self):
+    if self.user:
+      if self.request.get("like_blog"):
+        _blog_id = self.request.get("like_blog")
+        user = self.user
+        user_id = user.key.id()
+        _user = User.by_id(int(user_id))
+        _blog = Blog.get_by_id(int(_blog_id))
+        like = Like(user= user.key, blog=_blog.key)
+        like.like = 1
+        like_key = like.put()
+        blog = _blog.key.get()
+        blog.likes.append(like_key)
+        blog.put()
+        self.redirect('/')
+      if self.request.get("dislike"):
+        _blog_id = self.request.get("dislike")
+        user = self.user
+        user_id = user.key.id()
+        _user = User.by_id(int(user_id))
+        _blog = Blog.get_by_id(int(_blog_id))
+        like = Like.query(Like.user==user.key, Like.blog==_blog.key).get()
+        like_key = like.key
+        blog = _blog.key.get()
+        blog.likes.remove(like_key)
+        blog.put_async()
+        like_key.delete()
+        self.redirect('/')
+    else:
+      self.redirect('/login')
+
+
+  def isLiked(self, blogs, likes):
+    for blog in blogs:
+      for like in likes:
+        if (like.key in blog.likes) and (like.user == self.user.key):
+          return True
+    return False
 
 
 # Edit Post page class
@@ -344,24 +380,6 @@ class DeleteCommentPage(Handler):
     else:
       self.redirect('/login')
 
-
-# class LikeBlog(Handler):
-#
-#   def post(self, _postID):
-#     if self.user:
-#       _user = self.user
-#       user_id = _user.key.id()
-#       user_key = User.get_by_id(int(user_id))
-#       _like = self.request.get("comment")
-#       blog_key = Blog.get_by_id(int(_postID))
-#       comment = Comment(comment=_comment, user=user_key.key)
-#       comment_key = comment.put()
-#       blog = blog_key.key.get()
-#       blog.comments.append(comment_key)
-#       blog.put()
-#       self.redirect('/')
-#     else:
-#       self.redirect('/login')
 
 app = webapp2.WSGIApplication([('/', BlogsPage),
                                ('/newpost', AddNewPostPage),

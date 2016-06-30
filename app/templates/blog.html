@@ -55,24 +55,26 @@
               <h5><span class="label label-danger"></span><span class="label label-primary"></span></h5><br>
               <p>{{blog.blog}}</p>
               <br><br>
-                <div class="like">
-                {% for like in blog.likes %}
-                      {% if like.get().like == 0 %}
-                        <form method="post">
-                          <button type="button" name="like" class="btn btn-default btn-sm">
-                            <span class="glyphicon glyphicon-thumbs-up"></span>Like
-                          </button>
-                        </form>
-                      {% endif %}
-                      {% if like.get().like == 1 %}
-                        <form method="post">
-                          <button type="button" id="like" name="dislike" class="btn btn-default btn-sm">
-                            <span class="glyphicon glyphicon-thumbs-down"></span>Like
-                          </button>
-                        </form>
-                      {% endif %}
-                {% endfor %}
-                </div>
+              <div id="postlike">
+              {% if user.name %}
+                  {% if isLiked %}
+                            <form method="post">
+                              <input type="hidden" value="{{blog.key.id()}}" name="dislike"/>
+                              <button type="submit" id="like" class="btn btn-default btn-sm">
+                                <span class="glyphicon glyphicon-thumbs-up"></span> Like
+                              </button>
+                            </form>
+                  {% else %}
+                      <form method="post">
+                              <input type="hidden" value="{{blog.key.id()}}" name="like_blog"/>
+                              <button type="submit" class="btn btn-default btn-sm">
+                                <span class="glyphicon glyphicon-thumbs-up"></span> Like
+                              </button>
+                            </form>
+                  {% endif %}
+                  <span class="likes">{{ blog.likes | length }} likes</span>
+              </div>
+              {% endif %}
               <br><br>
               <p><span class="badge"></span> Comments:</p><hr>
               {% for comment in blog.comments %}

@@ -44,7 +44,7 @@ class Comment(ndb.Model):
 
 
 class Like(ndb.Model):
-    like = ndb.IntegerProperty(default=0)
+    like = ndb.IntegerProperty()
     blog = ndb.KeyProperty(kind='Blog')
     user = ndb.KeyProperty(kind=User)
 
