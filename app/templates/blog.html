@@ -55,8 +55,9 @@
               <h5><span class="label label-danger"></span><span class="label label-primary"></span></h5><br>
               <p>{{blog.blog}}</p>
               <br><br>
-              <div id="postlike">
               {% if user.name %}
+              <div id="postlike">
+
                   {% if isLiked %}
                             <form method="post">
                               <input type="hidden" value="{{blog.key.id()}}" name="dislike"/>
