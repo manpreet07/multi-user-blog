@@ -215,11 +215,10 @@ class BlogsPage(Handler):
       _user = User.by_id(int(user_id))
       _blogs = Blog.query_blogs().fetch()
       likes = Like.query().fetch()
-      isliked = self.isLiked(_blogs, likes)
-      self.render('blog.html', blogs=_blogs, user=_user, likes=likes, isLiked=isliked)
+      self.render('blog.html', blogs=_blogs, user=_user, likes=likes)
     else:
       _blogs = Blog.query_blogs().fetch()
-      self.render('blog.html', blogs=_blogs, user=None, likes=None, isLiked=None)
+      self.render('blog.html', blogs=_blogs, user=None, likes=None)
 
   def post(self):
     if self.user:
@@ -246,20 +245,21 @@ class BlogsPage(Handler):
         like_key = like.key
         blog = _blog.key.get()
         blog.likes.remove(like_key)
-        blog.put_async()
+        blog.put()
         like_key.delete()
         self.redirect('/')
     else:
       self.redirect('/login')
 
 
-  def isLiked(self, blogs, likes):
-    for blog in blogs:
-      for like in likes:
-        if (like.key in blog.likes) and (like.user == self.user.key):
-          return True
+  def isLiked(user, blog, likes):
+    # for blog in blogs:
+    for like in likes:
+      if (like.key in blog.likes) and (like.user == user.key):
+        return True
     return False
 
+  jinja_env.globals.update(isLiked=isLiked)
 
 # Edit Post page class
 class EditPostPage(Handler):
