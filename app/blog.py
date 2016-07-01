@@ -10,36 +10,80 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir), autoescape=True)
 
 
-# method return salt
 def make_salt():
+  """
+  method return salt
+  :return:
+  :rtype:
+  """
   return "dsfkadb425b42534132erada34sdsadaas1234sqedq2112e21e22312qerdfdsfarqewr31421324"
 
 
-# method to create hash string
 def hash_str(s):
+  """
+  method to create hash string
+  :param s:
+  :type s:
+  :return:
+  :rtype:
+  """
   return hmac.new(make_salt(), s).hexdigest()
 
 
 def make_secure_val(s):
+  """
+  method return secure value
+  :param s:
+  :type s:
+  :return:
+  :rtype:
+  """
   return "%s|%s" % (s, hash_str(s))
 
 
 def check_secure_val(h):
+  """
+  metohd to check secure value
+  :param h:
+  :type h:
+  :return:
+  :rtype:
+  """
   val = h.split('|')[0]
   if h == make_secure_val(val):
     return val
 
 
-# method to make hash password
 def make_pw_hash(name, pw, salt=None):
+  """
+  method to make hash password
+  :param name:
+  :type name:
+  :param pw:
+  :type pw:
+  :param salt:
+  :type salt:
+  :return:
+  :rtype:
+  """
   if not salt:
     salt = make_salt()
   h = hashlib.sha256(name + pw + salt).hexdigest()
-  return '%s,%s' % (salt,h)
+  return '%s,%s' % (salt, h)
 
 
-# method to validate hash password
 def valid_pw(name, pw, h):
+  """
+  method to validate hash password
+  :param name:
+  :type name:
+  :param pw:
+  :type pw:
+  :param h:
+  :type h:
+  :return:
+  :rtype:
+  """
   _salt = h.split(",")[0]
   if h == make_pw_hash(name, pw, _salt):
     return True
@@ -47,51 +91,103 @@ def valid_pw(name, pw, h):
     return False
 
 
-# Main Handler class
 class Handler(webapp2.RequestHandler):
+  """
+  Main Handler class
+  """
+
   def write(self, *a, **kw):
+    """
+    method to write response
+    :param a:
+    :type a:
+    :param kw:
+    :type kw:
+    """
     self.response.out.write(*a, **kw)
 
   def render_str(self, template, **params):
+    """
+    method to render template
+    :param template:
+    :type template:
+    :param params:
+    :type params:
+    :return:
+    :rtype:
+    """
     t = jinja_env.get_template(template)
     return t.render(params)
 
   def render(self, template, **kw):
     self.write(self.render_str(template, **kw))
 
-  # method to read cookies
   def read_secure_cookie(self, name):
+    """
+    method to read cookies
+    :param name:
+    :type name:
+    :return:
+    :rtype:
+    """
     cookie_val = self.request.cookies.get(name)
     return cookie_val and check_secure_val(cookie_val)
 
-  # method to set cookies
   def set_secure_cookie(self, name, val):
+    """
+    method to set cookies
+    :param name:
+    :type name:
+    :param val:
+    :type val:
+    """
     cookie_val = make_secure_val(val)
     self.response.headers.add_header('Set-Cookie', '%s=%s' % (name, cookie_val))
 
-  # method to login
   def login(self, user):
+    """
+    method to login
+    :param user:
+    :type user:
+    """
     self.set_secure_cookie('user_id', str(user))
 
-  # method to log out
   def logout(self):
+    """
+    method to log out
+    """
     self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
 
   def initialize(self, *a, **kw):
+    """
+    Initialize method returns user
+    :param a:
+    :type a:
+    :param kw:
+    :type kw:
+    """
     webapp2.RequestHandler.initialize(self, *a, **kw)
     uid = self.read_secure_cookie('user_id')
     self.user = uid and User.by_id(int(uid))
 
 
-# Add new post page class
 class AddNewPostPage(Handler):
+  """Add new post page class"""
+
   def get(self):
+    """
+    Get method to render newpost.html
+    """
     if self.user:
       self.render('newpost.html')
     else:
       self.redirect('/login')
 
   def post(self):
+    """
+    Post method to create new posts
+    :rtype: object
+    """
     blog = {}
     _title = self.request.get("title")
     _blog = self.request.get("blog")
@@ -101,14 +197,9 @@ class AddNewPostPage(Handler):
     if self.user:
       if _title and _blog:
         user = self.user
-        newPost = Blog(user= user.key, title=_title, blog=_blog)
+        newPost = Blog(user=user.key, title=_title, blog=_blog)
         newPost_key = newPost.put()
         newPostID = newPost_key.id()
-        # like = Like(user= user.key, blog=newPost_key)
-        # like_key = like.put()
-        # blog = newPost_key.get()
-        # blog.likes.append(like_key)
-        # blog.put()
         self.redirect('/blog/%s' % str(newPostID))
       elif _title == "" or _blog == "":
         if _title == "":
@@ -123,9 +214,17 @@ class AddNewPostPage(Handler):
       self.redirect('/login')
 
 
-# post page class
 class PostPage(Handler):
+  """ post page class """
+
   def get(self, post_id):
+    """
+    Get method to render permalink.html
+    :param post_id:
+    :type post_id:
+    :return:
+    :rtype:
+    """
     user = self.user
     parent = user.key
     blog_key = Blog.get_by_id(int(post_id))
@@ -138,12 +237,19 @@ class PostPage(Handler):
     self.render("permalink.html", blog=post)
 
 
-# signup page class
 class SignUpPage(Handler):
+  """ signup page class """
+
   def get(self):
+    """
+    Get method to render signup.html
+    """
     self.render('signup.html')
 
   def post(self):
+    """
+    Post method to signup
+    """
     _username = self.request.get("username")
     _pwd = self.request.get("password")
     _verify_pwd = self.request.get("verify_password")
@@ -156,7 +262,7 @@ class SignUpPage(Handler):
 
     if _username and _pwd and _verify_pwd and _email:
       if _pwd == _verify_pwd:
-        _user = User.query(User.name==_username).get()
+        _user = User.query(User.name == _username).get()
         print _user
         if _user is None:
           _newUser = User.register(_username, _pwd, _email)
@@ -170,16 +276,23 @@ class SignUpPage(Handler):
         self.render('signup.html', verify_pw_error=verify_pw_error)
 
     if _username == "" or _pwd == "" or _verify_pwd == "" or _email == "":
-      self.render('signup.html', username_error=username_error, pw_error=pw_error, verify_pw_error=verify_pw_error,
-                  email_error=email_error)
+      self.render('signup.html', username_error=username_error, pw_error=pw_error,
+                  verify_pw_error=verify_pw_error, email_error=email_error)
 
 
-# login page class
 class LoginPage(Handler):
+  """ login page class """
+
   def get(self):
+    """
+    Get metoh to render login.html
+    """
     self.render('login.html')
 
   def post(self):
+    """
+    Post method to login and render blog.html
+    """
     _username = self.request.get("username")
     _pwd = self.request.get("password")
 
@@ -196,19 +309,28 @@ class LoginPage(Handler):
       else:
         self.redirect('/blog/signup')
     else:
-      self.render('blog.html', username_error=username_error, pw_error=pw_error, error=error)
+      self.render('blog.html', username_error=username_error,
+                  pw_error=pw_error, error=error)
 
 
-# logout page class
 class Logout(Handler):
+  """logout page class"""
+
   def get(self):
+    """
+    Get methog to render logout.html
+    """
     self.logout()
     self.render('logout.html')
 
 
-# Blogs page class
 class BlogsPage(Handler):
+  """Blogs page class"""
+
   def get(self):
+    """
+    Get method to render blog.html
+    """
     if self.user:
       user_key = self.user
       user_id = user_key.key.id()
@@ -221,6 +343,9 @@ class BlogsPage(Handler):
       self.render('blog.html', blogs=_blogs, user=None, likes=None)
 
   def post(self):
+    """
+    Post method to like and unlike blogs
+    """
     if self.user:
       if self.request.get("like_blog"):
         _blog_id = self.request.get("like_blog")
@@ -228,7 +353,7 @@ class BlogsPage(Handler):
         user_id = user.key.id()
         _user = User.by_id(int(user_id))
         _blog = Blog.get_by_id(int(_blog_id))
-        like = Like(user= user.key, blog=_blog.key)
+        like = Like(user=user.key, blog=_blog.key)
         like.like = 1
         like_key = like.put()
         blog = _blog.key.get()
@@ -241,7 +366,7 @@ class BlogsPage(Handler):
         user_id = user.key.id()
         _user = User.by_id(int(user_id))
         _blog = Blog.get_by_id(int(_blog_id))
-        like = Like.query(Like.user==user.key, Like.blog==_blog.key).get()
+        like = Like.query(Like.user == user.key, Like.blog == _blog.key).get()
         like_key = like.key
         blog = _blog.key.get()
         blog.likes.remove(like_key)
@@ -251,9 +376,16 @@ class BlogsPage(Handler):
     else:
       self.redirect('/login')
 
-
   def isLiked(user, blog, likes):
-    # for blog in blogs:
+    """
+    Helper method return boolean if blog is liked by login user
+    :param blog:
+    :type blog:
+    :param likes:
+    :type likes:
+    :return:
+    :rtype:
+    """
     for like in likes:
       if (like.key in blog.likes) and (like.user == user.key):
         return True
@@ -261,9 +393,14 @@ class BlogsPage(Handler):
 
   jinja_env.globals.update(isLiked=isLiked)
 
-# Edit Post page class
+
 class EditPostPage(Handler):
+  """Edit Post page class"""
+
   def get(self, _postID):
+    """
+    Get method to get post by id
+    """
     if self.user:
       user = self.user
       parent = user.key
@@ -272,6 +409,11 @@ class EditPostPage(Handler):
       self.render('editpost.html', blog=post)
 
   def post(self, _postID):
+    """
+    Post method to edit post by id
+    :param _postID:
+    :type _postID:
+    """
     _title = self.request.get("title")
     _blog = self.request.get("blog")
     _post_error = "Please enter post"
@@ -281,13 +423,13 @@ class EditPostPage(Handler):
         user = self.user
         parent = user.key
         blog_key = Blog.get_by_id(int(_postID))
-        blog_key.title=_title
-        blog_key.blog=_blog
+        blog_key.title = _title
+        blog_key.blog = _blog
         blog_key.put()
         self.redirect('/')
       elif _title == "" or _blog == "":
         if _title == "":
-          blog = {"title":"", "blog": _blog}
+          blog = {"title": "", "blog": _blog}
           self.render('editpost.html', title_error=_title_error, blog=blog)
         if _blog == "":
           blog = {"title": _title, "blog": ""}
@@ -296,9 +438,15 @@ class EditPostPage(Handler):
       self.redirect('/login')
 
 
-# Delete page class
 class DeletePostPage(Handler):
+  """Delete page class"""
+
   def get(self, deletID):
+    """
+    Get method to get Post by id
+    :param deletID:
+    :type deletID:
+    """
     if self.user:
       user = self.user
       parent = user.key
@@ -307,6 +455,11 @@ class DeletePostPage(Handler):
       self.render('deletepost.html', blog=post)
 
   def post(self, deletID):
+    """
+    Post method to delete post by id
+    :param deletID:
+    :type deletID:
+    """
     user = self.user
     parent = user.key
     blog_key = Blog.get_by_id(int(deletID))
@@ -314,13 +467,24 @@ class DeletePostPage(Handler):
     self.redirect("/")
 
 
-# Comment page class
 class CommentPage(Handler):
+  """Comment page class"""
+
   def get(self, _postID):
+    """
+    Get method to get post by id and render comment.html
+    :param _postID:
+    :type _postID:
+    """
     blog_key = Blog.get_by_id(int(_postID))
     self.render('comment.html', blog=blog_key)
 
   def post(self, _postID):
+    """
+    Post method to add comment on the blog
+    :param _postID:
+    :type _postID:
+    """
     if self.user:
       _user = self.user
       user_id = _user.key.id()
@@ -337,9 +501,15 @@ class CommentPage(Handler):
       self.redirect('/login')
 
 
-# Edit Comment page class
 class EditCommentPage(Handler):
+  """Edit Comment page class"""
+
   def get(self, _postID):
+    """
+    Get method to get post by id and render editcomment.html
+    :param _postID:
+    :type _postID:
+    """
     if self.user:
       comment_key = Comment.get_by_id(int(_postID))
       post = comment_key
@@ -348,23 +518,34 @@ class EditCommentPage(Handler):
       self.redirect('/login')
 
   def post(self, _postID):
+    """
+    Post method to update comment by id
+    :param _postID:
+    :type _postID:
+    """
     _comment = self.request.get("comment")
     _comment_error = "Please enter comment"
     if self.user:
       if _comment:
         comment_key = Comment.get_by_id(int(_postID))
-        comment_key.comment=_comment
+        comment_key.comment = _comment
         comment_key.put()
         self.redirect('/')
       elif _comment == "":
-        self.render('editcomment.html', _comment_error=_comment_error,)
+        self.render('editcomment.html', _comment_error=_comment_error, )
     else:
       self.redirect('/login')
 
 
-# Delete Comment page class
 class DeleteCommentPage(Handler):
+  """Delete Comment page class"""
+
   def get(self, deleteID):
+    """
+    Get method to get post by id to delete
+    :param deleteID:
+    :type deleteID:
+    """
     if self.user:
       comment_key = Comment.get_by_id(int(deleteID))
       post = comment_key
@@ -373,6 +554,11 @@ class DeleteCommentPage(Handler):
       self.redirect('/login')
 
   def post(self, deleteID):
+    """
+    Post method to delete comment by id
+    :param deleteID:
+    :type deleteID:
+    """
     if self.user:
       comment_key = Comment.get_by_id(int(deleteID))
       comment_key.key.delete()
@@ -392,4 +578,4 @@ app = webapp2.WSGIApplication([('/', BlogsPage),
                                ('/blog/([0-9]+)', PostPage),
                                ('/editpost/([0-9]+)', EditPostPage),
                                ('/deletepost/([0-9]+)', DeletePostPage),
-                               ('/logout', Logout),], debug=True)
+                               ('/logout', Logout), ], debug=True)
