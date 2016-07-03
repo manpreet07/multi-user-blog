@@ -21,7 +21,7 @@
   </nav>
 <div class="container-fluid">
     <div class="row content">
-      <div class="col-sm-3 sidenav">
+      <div class="col-sm-2 sidenav">
         <ul class="nav nav-pills nav-stacked">
           {% if user %}
           <li><a href="/newpost">Add new post</a></li>
@@ -30,9 +30,8 @@
           {% endif %}
         </ul><br>
       </div>
-      <div class="col-sm-9">
+      <div class="col-sm-7">
             <h4><small>RECENT POSTS</small></h4>
-            <hr>
             <div class="well">
               <h2>{{blog.title}}</h2>
               <a href="/editpost/{{blog.key.id()}}">Edit</a> | <a href="/deletepost/{{blog.key.id()}}">Delete</a>
@@ -44,7 +43,4 @@
               <br><br>
                </div>
       </div>
-      </div>
-      </div>
-
 {% endblock %}
