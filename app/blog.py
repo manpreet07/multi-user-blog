@@ -460,12 +460,12 @@ class DeletePostPage(Handler):
     :param deletID:
     :type deletID:
     """
-    user = self.user
-    parent = user.key
-    blog_key = Blog.get_by_id(int(deletID))
-    blog_key.key.delete()
-    self.redirect("/")
-
+    if self.user:
+      blog_key = Blog.get_by_id(int(deletID))
+      blog_key.key.delete()
+      self.redirect("/")
+    else:
+      self.redirect('/login')
 
 class CommentPage(Handler):
   """Comment page class"""

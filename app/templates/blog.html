@@ -25,7 +25,7 @@
 
     <div class="container-fluid">
     <div class="row content">
-      <div class="col-sm-3 sidenav">
+      <div class="col-sm-2 sidenav">
         <ul class="nav nav-pills nav-stacked">
           {% if user %}
           <li><a href="/newpost">Add new post</a></li>
@@ -34,11 +34,10 @@
           {% endif %}
         </ul><br>
       </div>
-      <div class="col-sm-9">
+      <div class="col-sm-7">
           {% if blogs %}
 
             <h4><small>RECENT POSTS</small></h4>
-            <hr>
             {% for blog in blogs %}
             <div class="well">
               <h2>{{blog.title}}</h2>
@@ -56,24 +55,26 @@
               <p>{{blog.blog}}</p>
               <br><br>
               {% if user.name %}
-                    <div id="postlike">
-                        {% if isLiked(user, blog, likes) == True %}
-                                  <form method="post">
-                                    <input type="hidden" value="{{blog.key.id()}}" name="dislike"/>
-                                    <button type="submit" id="like" class="btn btn-default btn-sm">
-                                      <span class="glyphicon glyphicon-thumbs-up"></span> Like
-                                    </button>
-                                  </form>
-                        {% else %}
-                            <form method="post">
-                                    <input type="hidden" value="{{blog.key.id()}}" name="like_blog"/>
-                                    <button type="submit" class="btn btn-default btn-sm">
-                                      <span class="glyphicon glyphicon-thumbs-up"></span> Like
-                                    </button>
-                                  </form>
-                        {% endif %}
-                        <span class="likes">{{ blog.likes | length }} likes</span>
-                    </div>
+                {% if blog.user.get().name != user.name %}
+                      <div id="postlike">
+                          {% if isLiked(user, blog, likes) == True %}
+                                    <form method="post">
+                                      <input type="hidden" value="{{blog.key.id()}}" name="dislike"/>
+                                      <button type="submit" id="like" class="btn btn-default btn-sm">
+                                        <span class="glyphicon glyphicon-thumbs-up"></span> Like
+                                      </button>
+                                    </form>
+                          {% else %}
+                              <form method="post">
+                                      <input type="hidden" value="{{blog.key.id()}}" name="like_blog"/>
+                                      <button type="submit" class="btn btn-default btn-sm">
+                                        <span class="glyphicon glyphicon-thumbs-up"></span> Like
+                                      </button>
+                                    </form>
+                          {% endif %}
+                          <span class="likes">{{ blog.likes | length }} likes</span>
+                      </div>
+                {% endif %}
               {% endif %}
               <br><br>
               <p><span class="badge"></span> Comments:</p><hr>
@@ -99,18 +100,5 @@
           {% else %}
             <h2>No blogs to display</h2>
           {% endif %}
-      </div>
-    </div>
-      </div>
+        </div>
 {% endblock %}
-<script>
-$.ajax({
-    type: "POST",
-    url: "http://localhost:8080/",
-    contentType: "application/json; charset=utf-8",
-    data: data,
-    success: function(data) {
-        alert("AJAX done");
-    }
-});
-</script>
