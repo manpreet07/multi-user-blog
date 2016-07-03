@@ -35,9 +35,8 @@
         </ul><br>
       </div>
       <div class="col-sm-7">
-          {% if blogs %}
-
-            <h4><small>RECENT POSTS</small></h4>
+        <h4><small>RECENT POSTS</small></h4>
+        {% if blogs %}
             {% for blog in blogs %}
             <div class="well">
               <h2>{{blog.title}}</h2>
@@ -98,7 +97,9 @@
               </div>
             {% endfor %}
           {% else %}
-            <h2>No blogs to display</h2>
+            <div class="well">
+                <h2>No posts to display</h2>
+              </div>
           {% endif %}
         </div>
 {% endblock %}
