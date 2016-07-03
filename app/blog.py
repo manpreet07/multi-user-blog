@@ -85,10 +85,7 @@ def valid_pw(name, pw, h):
   :rtype:
   """
   _salt = h.split(",")[0]
-  if h == make_pw_hash(name, pw, _salt):
-    return True
-  else:
-    return False
+  return True if h == make_pw_hash(name, pw, _salt) else False
 
 
 class Handler(webapp2.RequestHandler):
@@ -231,7 +228,7 @@ class PostPage(Handler):
     post = blog_key
 
     if not post:
-      self.error(404)
+      self.render('error.html')
       return
 
     self.render("permalink.html", blog=post)
