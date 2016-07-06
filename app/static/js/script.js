@@ -8,7 +8,6 @@ function loadData() {
 		$sport + "&response-format=jsonp&callback=svc_search_v2_articlesearch&sort=newest&api-key=d781bddc9d95547090d0040cfd9f6bdd:3:74810776"
 
 		$.getJSON(nyTimesUrl, function (data) {
-		    console.log(data.response);
 			data.response.docs.forEach(function (article) {
 				$('#sport').append('<li class="article">' +
 					'<a href=' + article.web_url + '>' + article.headline.main + '</a></p>');
@@ -18,5 +17,3 @@ function loadData() {
 		});
 	return false;
 };
-
-console.log(loadData());
