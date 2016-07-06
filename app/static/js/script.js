@@ -10,10 +10,12 @@ function loadData() {
 		$.getJSON(nyTimesUrl, function (data) {
 			data.response.docs.forEach(function (article) {
 				$('#sport').append('<li class="article">' +
-					'<a href=' + article.web_url + '>' + article.headline.main + '</a></p>');
+					'<a href=" + article.web_url + ">' + article.headline.main + '</a></p>');
 			});
 		}).error(function(e) {
 		    console.log('New York Times Articles could not be loaded');
 		});
 	return false;
 };
+
+loadData();
